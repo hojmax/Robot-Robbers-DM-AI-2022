@@ -10,7 +10,7 @@ int SCROOGE_INDEX = 8;
 int SCROOGE_RADIUS = 15;
 int ACTION_SIZE = 10;
 int PLAYER_ROBOTS = 5;
-int N_NEIGHBOURS = 8;
+int N_NEIGHBOURS = 16;
 int W = 128;
 int H = 128;
 #define MAX_QUEUE_SIZE (128 * 128)
@@ -253,6 +253,17 @@ int has_reached_goal(int sx, int sy, int ex, int ey, int* obstacle_map)
     return sx == ex && sy == ey;
 }
 
+void display(int idx, int* pqVal, int* pqPriority)
+{
+    for (int i = 0; i <= idx; i++) {
+        printf("(%d, %d)\n", pqVal[i], pqPriority[i]);
+    }
+    if (idx == -1) {
+        printf("Empty\n");
+    }
+    printf("\n");
+}
+
 int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     int* (*get_neighbours)(int, int, int*), int (*heuristic)(int, int, int, int, int*),
     int (*is_done)(int, int, int, int, int*))
@@ -265,44 +276,56 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     int pqPriority[MAX_QUEUE_SIZE];
     // --
     enqueue(sy * W + sx, 0, &idx, pqVal, pqPriority);
+    cost_so_far[sy * W + sx] = 1;
+    display(idx, pqVal, pqPriority);
     int cx;
     int cy;
     while (!isEmpty(idx)) {
         int current = dequeue(&idx, pqVal, pqPriority);
+        printf("Dequeued: %d\n", current);
+        display(idx, pqVal, pqPriority);
         cx = current % W;
         cy = current / W;
+        // printf("CX: %d, CY: %d\n", cx, cy);
         if (is_done(cx, cy, tx, ty, obstacle_map)) {
             break;
         }
         int* neighbours = get_neighbours(cx, cy, obstacle_map);
-        for (int i = 0; i < N_NEIGHBOURS; i++) {
+        // print_grid(neighbours, N_NEIGHBOURS, 1);
+        for (int i = 0; i < N_NEIGHBOURS; i += 2) {
             int nx = neighbours[i];
             int ny = neighbours[i + 1];
+            // printf("NX: %d, NY: %d\n", nx, ny);
             if (nx == -1 && ny == -1)
                 continue;
             int new_cost = cost_so_far[cy * W + cx] + 1;
-            int is_new = cost_so_far[ny * W + nx] == 0;
-            int is_better = new_cost < cost_so_far[ny * W + nx];
+            int neighbour_index = ny * W + nx;
+            int is_new = cost_so_far[neighbour_index] == 0;
+            int is_better = new_cost < cost_so_far[neighbour_index];
             if (is_new || is_better) {
-                cost_so_far[ny * W + nx] = new_cost;
+                cost_so_far[neighbour_index] = new_cost;
                 int priority = new_cost + heuristic(nx, ny, tx, ty, obstacle_map);
                 // Minus sign because of max priority queue
-                enqueue(ny * W + nx, -priority, &idx, pqVal, pqPriority);
-                came_from[ny * W + nx] = current;
+                // printf("neighbour_index: %d\n", neighbour_index);
+                enqueue(neighbour_index, -priority, &idx, pqVal, pqPriority);
+                came_from[neighbour_index] = current;
             }
         }
+        display(idx, pqVal, pqPriority);
     }
     if (isEmpty(idx)) {
+        printf("No path found");
         return NULL;
     }
+    printf("A* found a path");
     return get_move(sx, sy, cx, cy, came_from);
 }
 
 int null_heuristic(int sx, int sy, int ex, int ey, int* obstacle_map) { return 0; }
 
-int is_in_empty_cell(int sx, int sy, int ex, int ey, int* obstacle_map)
+int not_watched_by_scrooge(int sx, int sy, int ex, int ey, int* obstacle_map)
 {
-    return obstacle_map[sy * W + sx] == 0;
+    return obstacle_map[sy * W + sx] != SCROOGE_INDEX;
 }
 
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
@@ -336,13 +359,15 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             free_robots[i / 2] = 1;
         } else {
             printf("Occupied");
-            int* move = get_a_star_move(
-                x, y, -1, -1, obstacle_map, get_flee_neighbours, null_heuristic, is_in_empty_cell);
-            printf("Move: %d %d\n", move[0], move[1]);
+            int* move = get_a_star_move(x, y, -1, -1, obstacle_map, get_flee_neighbours,
+                null_heuristic, not_watched_by_scrooge);
             if (move != NULL) {
+                printf("Move NULL");
                 action[i] = move[0];
                 action[i + 1] = move[1];
                 free(move);
+            } else {
+                // printf("Move: %d %d\n", move[0], move[1]);
             }
         }
     }
