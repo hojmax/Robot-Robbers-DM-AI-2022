@@ -1,6 +1,6 @@
 from environment import RobotRobbersEnv
 import numpy as np
-import pygame
+# import pygame
 import ctypes
 helpers = ctypes.CDLL('./helper.so')
 # robots = [19, 25, 116, 42, 80, 96, 65, 76, 87, 61]
@@ -57,17 +57,27 @@ def extract_information(state):
         [[x, y] for (x, y, w, h) in state[3] if x >= 0 and y >= 0]
     ).flatten()
     obstacles = np.array(
-        [[x, y, w, h] for x, y, w, h in state[4]]
+        [[x, y, w, h] for x, y, w, h in state[4] if x >= 0 and y >= 0]
     ).flatten()
     cash_carried = [row[0] for row in state[5] if row[0] >= 0]
+    print('Robots', robots)
+    print('Scrooges', scrooges)
+    print('Cashbags', cashbags)
+    print('Dropspots', dropspots)
+    print('Obstacles', obstacles)
+    print('Cash carried', cash_carried)
     return robots, scrooges, cashbags, dropspots, cash_carried, obstacles
 
 
 if __name__ == '__main__':
     env = RobotRobbersEnv()
     state = env.reset()
-    action = get_action(state)
-    print('Action:', action)
+
+    for _ in range(1):
+        action = get_action(state)
+        print('Action:', action)
+        state, reward, done, info = env.step(action)
+
     # clock = pygame.time.Clock()
     # while True:
     #     clock.tick(24)

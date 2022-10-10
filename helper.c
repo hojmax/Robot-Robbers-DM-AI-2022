@@ -265,17 +265,17 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     enqueue(start_index, -1, &idx, pqVal, pqPriority);
     cost_so_far[start_index] = 1;
     came_from[start_index] = start_index;
-    display(idx, pqVal, pqPriority);
+    // display(idx, pqVal, pqPriority);
     int cx;
     int cy;
     while (!isEmpty(idx)) {
-        printf("Before");
-        display(idx, pqVal, pqPriority);
+        // printf("Before");
+        // display(idx, pqVal, pqPriority);
         int current = dequeue(&idx, pqVal, pqPriority);
-        printf("Dequeued: %d, %d\n", current % W, current / W);
+        // printf("Dequeued: %d, %d\n", current % W, current / W);
 
-        printf("After");
-        display(idx, pqVal, pqPriority);
+        // printf("After");
+        // display(idx, pqVal, pqPriority);
         cx = current % W;
         cy = current / W;
         // printf("CX: %d, CY: %d\n", cx, cy);
@@ -304,10 +304,10 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
             }
         }
         free(neighbours);
-        printf("Added neighbours\n");
-        display(idx, pqVal, pqPriority);
+        // printf("Added neighbours\n");
+        // display(idx, pqVal, pqPriority);
     }
-    print_grid(came_from, W, H);
+    // print_grid(came_from, W, H);
     if (isEmpty(idx)) {
         // printf("No path found\n");
         return NULL;
@@ -324,15 +324,18 @@ int* get_distance_matrix(
     for (int i = 0; i < n_robots; i += 2) {
         int rx = robots[i];
         int ry = robots[i + 1];
+        printf("Rx %d, Ry %d\n", rx, ry);
         for (int j = 0; j < n_cashbags; j += 2) {
             int cx = cashbags[j];
             int cy = cashbags[j + 1];
+            printf("Cx %d, Cy %d\n", cx, cy);
             int distance;
             if (!free_robots[i / 2] || obstacle_map[cy * W + cx] == SCROOGE_INDEX) {
                 distance = INT_MAX;
             } else {
                 distance = get_custom_distance(rx, ry, cx, cy);
             }
+
             // printf("Distance from (%d, %d) to (%d, %d) is %d\n", rx, ry, cx, cy, distance);
             distance_matrix[index * (n_cashbags / 2) + j / 2] = distance;
         }
@@ -355,7 +358,6 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
     // print_grid(obstacle_map, W, H);
-    printf("ASDASD");
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     for (int i = 0; i < n_robots; i += 2) {
@@ -390,11 +392,17 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             }
         }
     }
+    if (n_free_robots == 0 || n_cashbags == 0) {
+        printf("No free robots or no cashbags\n");
+        return action;
+    }
+    printf("n_cashbags: %d\n", n_cashbags);
     int* distance_matrix
         = get_distance_matrix(robots, free_robots, cashbags, n_cashbags, n_robots, obstacle_map);
     print_grid(distance_matrix, n_robots, n_cashbags / 2);
     int* free_cashbags = calloc(n_cashbags / 2, sizeof(int));
     while (1) {
+        printf("Looping\n");
         int robot_index = -1;
         int cash_index = -1;
         int min_distance = INT_MAX;
@@ -436,7 +444,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         if (n_free_robots == 0) {
             break;
         } else {
-            n_free_robots -= 1;
+            n_free_robots--;
         }
     }
     // print_grid(distance_matrix, PLAYER_ROBOTS, n_cashbags / 2);
