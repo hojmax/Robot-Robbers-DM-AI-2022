@@ -15,64 +15,107 @@ int W = 128;
 int H = 128;
 #define MAX_QUEUE_SIZE (128 * 128)
 
-int isEmpty(int idx) { return idx == -1; }
+// returns the index of the parent node
+int parent(int i) { return (i - 1) / 2; }
 
-int isFull(int idx) { return idx == MAX_QUEUE_SIZE - 1; }
+// return the index of the left child
+int left_child(int i) { return 2 * i + 1; }
 
-// enqueue just adds item to the end of the priority queue | O(1)
-void enqueue(int data, int priority, int* idx, int* pqVal, int* pqPriority)
+// return the index of the right child
+int right_child(int i) { return 2 * i + 2; }
+
+void swap(int* x, int* y)
 {
-    if (!isFull(*idx)) {
-        // Increase the index
-        *idx += 1;
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
 
-        // Insert the element in priority queue
-        pqVal[*idx] = data;
-        pqPriority[*idx] = priority;
+// insert the item at the appropriate position
+void insert(int keys[], int values[], int key, int value, int* n)
+{
+    if (*n >= MAX_QUEUE_SIZE) {
+        printf("%s\n", "The heap is full. Cannot insert");
+        return;
+    }
+    // first insert the time at the last position of the array
+    // and move it up
+    keys[*n] = key;
+    values[*n] = value;
+    *n = *n + 1;
+
+    // move up until the heap property satisfies
+    int i = *n - 1;
+    while (i != 0 && keys[parent(i)] < keys[i]) {
+        swap(&keys[parent(i)], &keys[i]);
+        swap(&values[parent(i)], &values[i]);
+        i = parent(i);
     }
 }
 
-// returns item with highest priority
-// NOTE: Max Priority Queue High priority number means higher priority | O(N)
-int peek(int idx, int* pqVal, int* pqPriority)
+// moves the item at position i of array a
+// into its appropriate position
+void max_heapify(int keys[], int values[], int i, int n)
 {
-    // Note : Max Priority, so assigned min value as initial value
-    int maxPriority = INT_MIN;
-    int indexPos = -1;
+    // find left child node
+    int left = left_child(i);
 
-    // Linear search for highest priority
-    for (int i = 0; i <= idx; i++) {
-        if (maxPriority < pqPriority[i]) {
-            maxPriority = pqPriority[i];
-            indexPos = i;
-        }
+    // find right child node
+    int right = right_child(i);
+
+    // find the largest among 3 nodes
+    int largest = i;
+
+    // check if the left node is larger than the current node
+    if (left <= n && keys[left] > keys[largest]) {
+        largest = left;
     }
 
-    // Return index of the element where
-    return indexPos;
+    // check if the right node is larger than the current node
+    if (right <= n && keys[right] > keys[largest]) {
+        largest = right;
+    }
+
+    // swap the largest node with the current node
+    // and repeat this process until the current node is larger than
+    // the right and the left node
+    if (largest != i) {
+        int temp = keys[i];
+        keys[i] = keys[largest];
+        keys[largest] = temp;
+
+        int temp2 = values[i];
+        values[i] = values[largest];
+        values[largest] = temp2;
+
+        max_heapify(keys, values, largest, n);
+    }
 }
 
-// This removes the element with highest priority
-// from the priority queue | O(N)
-int dequeue(int* idx, int* pqVal, int* pqPriority)
+// deletes the max item and return
+int extract_max(int keys[], int values[], int* n)
 {
-    if (!isEmpty(*idx)) {
-        // Get element with highest priority
-        int indexPos = peek(*idx, pqVal, pqPriority);
-        int returnValue = pqVal[indexPos];
-        // reduce size of priority queue by first
-        // shifting all elements one position left
-        // from index where the highest priority item was found
-        for (int i = indexPos; i < *idx; i++) {
-            pqVal[i] = pqVal[i + 1];
-            pqPriority[i] = pqPriority[i + 1];
-        }
+    int max_item = values[0];
 
-        // reduce size of priority queue by 1
-        *idx -= 1;
-        return returnValue;
+    // replace the first item with the last item
+    keys[0] = keys[*n - 1];
+    values[0] = values[*n - 1];
+    *n = *n - 1;
+
+    // maintain the heap property by heapifying the
+    // first item
+    max_heapify(keys, values, 0, *n);
+    return max_item;
+}
+
+// prints the heap
+void print_heap(int a[], int n)
+{
+    int i;
+    for (i = 0; i < n; i++) {
+        printf("%d\n", a[i]);
     }
-    return -1;
+    printf("\n");
 }
 
 void print_grid(int* grid, int w, int h)
@@ -205,20 +248,21 @@ int* get_neighbours_base(int x, int y, int* obstacle_map, int (*condition)(int))
         output[i] = -1;
     }
     int index = 0;
-    for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
-            if (i == 0 && j == 0)
-                continue;
-            int x2 = x + i;
-            int y2 = y + j;
-            if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
-                int index2 = y2 * W + x2;
-                int value = obstacle_map[index2];
-                if (condition(value)) {
-                    output[index] = x2;
-                    output[index + 1] = y2;
-                    index += 2;
-                }
+    int all_moves[] = { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1 };
+    for (int a = 0; a < 16; a += 2) {
+        int i = all_moves[a];
+        int j = all_moves[a + 1];
+        if (i == 0 && j == 0)
+            continue;
+        int x2 = x + i;
+        int y2 = y + j;
+        if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
+            int index2 = y2 * W + x2;
+            int value = obstacle_map[index2];
+            if (condition(value)) {
+                output[index] = x2;
+                output[index + 1] = y2;
+                index += 2;
             }
         }
     }
@@ -261,22 +305,23 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
 {
     int* came_from = calloc(W * H, sizeof(int));
     int* cost_so_far = calloc(W * H, sizeof(int));
-    // -- Priority queue of cells to visit
-    int idx = -1;
-    int pqVal[MAX_QUEUE_SIZE];
-    int pqPriority[MAX_QUEUE_SIZE];
+    // -- Binary heap of cells to visit
+    int n = 0;
+    int* keys = calloc(MAX_QUEUE_SIZE, sizeof(int));
+    int* values = calloc(MAX_QUEUE_SIZE, sizeof(int));
     // --
     int start_index = sy * W + sx;
-    enqueue(start_index, -1, &idx, pqVal, pqPriority);
+    insert(keys, values, -1, start_index, &n);
     cost_so_far[start_index] = 1;
     came_from[start_index] = start_index;
     // display(idx, pqVal, pqPriority);
     int cx;
     int cy;
-    while (!isEmpty(idx)) {
+    // While not empty
+    while (n != 0) {
         // printf("Before");
         // display(idx, pqVal, pqPriority);
-        int current = dequeue(&idx, pqVal, pqPriority);
+        int current = extract_max(keys, values, &n);
         // printf("Dequeued: %d, %d\n", current % W, current / W);
 
         // printf("After");
@@ -304,7 +349,7 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
                 int priority = new_cost + heuristic(nx, ny, tx, ty, obstacle_map);
                 // Minus sign because of max priority queue
                 // printf("neighbour_index: %d\n", neighbour_index);
-                enqueue(neighbour_index, -priority, &idx, pqVal, pqPriority);
+                insert(keys, values, -priority, neighbour_index, &n);
                 came_from[neighbour_index] = current;
             }
         }
@@ -312,8 +357,11 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
         // printf("Added neighbours\n");
         // display(idx, pqVal, pqPriority);
     }
+    free(keys);
+    free(values);
     // print_grid(came_from, W, H);
-    if (isEmpty(idx)) {
+    int isEmpty = n == 0;
+    if (isEmpty) {
         // printf("No path found\n");
         return NULL;
     }
@@ -357,147 +405,11 @@ int not_watched_by_scrooge(int sx, int sy, int ex, int ey, int* obstacle_map)
     return obstacle_map[sy * W + sx] != SCROOGE_INDEX;
 }
 
-// returns the index of the parent node
-int parent(int i) { return (i - 1) / 2; }
-
-// return the index of the left child
-int left_child(int i) { return 2 * i + 1; }
-
-// return the index of the right child
-int right_child(int i) { return 2 * i + 2; }
-
-void swap(int* x, int* y)
-{
-    int temp = *x;
-    *x = *y;
-    *y = temp;
-}
-
-// insert the item at the appropriate position
-void insert(int keys[], int values[], int key, int value, int* n)
-{
-    if (*n >= MAX_QUEUE_SIZE) {
-        printf("%s\n", "The heap is full. Cannot insert");
-        return;
-    }
-    // first insert the time at the last position of the array
-    // and move it up
-    keys[*n] = key;
-    values[*n] = value;
-    *n = *n + 1;
-
-    // move up until the heap property satisfies
-    int i = *n - 1;
-    while (i != 0 && keys[parent(i)] < keys[i]) {
-        swap(&keys[parent(i)], &keys[i]);
-        swap(&values[parent(i)], &values[i]);
-        i = parent(i);
-    }
-}
-
-// moves the item at position i of array a
-// into its appropriate position
-void max_heapify(int keys[], int values[], int i, int n)
-{
-    // find left child node
-    int left = left_child(i);
-
-    // find right child node
-    int right = right_child(i);
-
-    // find the largest among 3 nodes
-    int largest = i;
-
-    // check if the left node is larger than the current node
-    if (left <= n && keys[left] > keys[largest]) {
-        largest = left;
-    }
-
-    // check if the right node is larger than the current node
-    if (right <= n && keys[right] > keys[largest]) {
-        largest = right;
-    }
-
-    // swap the largest node with the current node
-    // and repeat this process until the current node is larger than
-    // the right and the left node
-    if (largest != i) {
-        int temp = keys[i];
-        keys[i] = keys[largest];
-        keys[largest] = temp;
-
-        int temp2 = values[i];
-        values[i] = values[largest];
-        values[largest] = temp2;
-
-        max_heapify(keys, values, largest, n);
-    }
-}
-
-// deletes the max item and return
-int extract_max(int keys[], int values[], int* n)
-{
-    int max_item = values[0];
-
-    // replace the first item with the last item
-    keys[0] = keys[*n - 1];
-    values[0] = values[*n - 1];
-    *n = *n - 1;
-
-    // maintain the heap property by heapifying the
-    // first item
-    max_heapify(keys, values, 0, *n);
-    return max_item;
-}
-
-// prints the heap
-void print_heap(int a[], int n)
-{
-    int i;
-    for (i = 0; i < n; i++) {
-        printf("%d\n", a[i]);
-    }
-    printf("\n");
-}
-
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
     int* obstacles, int n_robots, int n_scrooges, int n_cashbags, int n_dropspots,
     int n_cash_carried, int n_obstacles)
 {
     int* action = calloc(ACTION_SIZE, sizeof(int));
-    int n = 0;
-    int* keys = calloc(MAX_QUEUE_SIZE, sizeof(int));
-    int* values = calloc(MAX_QUEUE_SIZE, sizeof(int));
-    insert(keys, values, 55, 99, &n);
-    insert(keys, values, 1, 2, &n);
-    insert(keys, values, 96, 32, &n);
-    insert(keys, values, 42, 34, &n);
-    insert(keys, values, 94, 67, &n);
-    insert(keys, values, 19, 15, &n);
-    insert(keys, values, 40, 66, &n);
-
-    printf("Key heap\n");
-    print_heap(keys, n);
-    printf("Values heap\n");
-    print_heap(values, n);
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    insert(keys, values, 19, 15, &n);
-    insert(keys, values, 40, 66, &n);
-    printf("Key heap\n");
-    print_heap(keys, n);
-    printf("Values heap\n");
-    print_heap(values, n);
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    printf("Max is %d\n", extract_max(keys, values, &n));
-    free(keys);
-    free(values);
-    /*
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
     // print_grid(obstacle_map, W, H);
     // int* obstacle_map_2 = calloc(W * H, sizeof(int));
@@ -605,28 +517,8 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         }
     }
     free(obstacle_map);
-    free(free_robots);*/
+    free(free_robots);
     return action;
 }
 
 // Command: make helper && python main.py
-
-// int idx = -1;
-// int pqVal[MAX_QUEUE_SIZE];
-// int pqPriority[MAX_QUEUE_SIZE];
-// // To enqueue items as per priority
-// enqueue(5, 1, &idx, pqVal, pqPriority);
-// enqueue(10, 3, &idx, pqVal, pqPriority);
-// enqueue(15, 4, &idx, pqVal, pqPriority);
-// enqueue(20, 5, &idx, pqVal, pqPriority);
-// enqueue(500, 2, &idx, pqVal, pqPriority);
-
-// printf("Before Dequeue : \n");
-// display(idx, pqVal, pqPriority);
-
-// // Dequeue the top element
-// dequeue(&idx, pqVal, pqPriority); // 20 dequeued
-// dequeue(&idx, pqVal, pqPriority); // 15 dequeued
-
-// printf("\nAfter Dequeue : \n");
-// display(idx, pqVal, pqPriority);
