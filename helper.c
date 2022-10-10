@@ -42,16 +42,7 @@ int peek(int idx, int* pqVal, int* pqPriority)
 
     // Linear search for highest priority
     for (int i = 0; i <= idx; i++) {
-        // If two items have same priority choose the one with
-        // higher data value
-        if (maxPriority == pqPriority[i] && indexPos > -1 && pqVal[indexPos] < pqVal[i]) {
-            maxPriority = pqPriority[i];
-            indexPos = i;
-        }
-
-        // note: using MAX Priority so higher priority number
-        // means higher priority
-        else if (maxPriority < pqPriority[i]) {
+        if (maxPriority < pqPriority[i]) {
             maxPriority = pqPriority[i];
             indexPos = i;
         }
@@ -68,7 +59,7 @@ int dequeue(int* idx, int* pqVal, int* pqPriority)
     if (!isEmpty(*idx)) {
         // Get element with highest priority
         int indexPos = peek(*idx, pqVal, pqPriority);
-
+        int returnValue = pqVal[indexPos];
         // reduce size of priority queue by first
         // shifting all elements one position left
         // from index where the highest priority item was found
@@ -79,7 +70,7 @@ int dequeue(int* idx, int* pqVal, int* pqPriority)
 
         // reduce size of priority queue by 1
         *idx -= 1;
-        return pqVal[indexPos];
+        return returnValue;
     }
     return -1;
 }
@@ -249,7 +240,9 @@ int has_reached_goal(int sx, int sy, int ex, int ey, int* obstacle_map)
 void display(int idx, int* pqVal, int* pqPriority)
 {
     for (int i = 0; i <= idx; i++) {
-        printf("(%d, %d)\n", pqVal[i], pqPriority[i]);
+        int x = pqVal[i] % W;
+        int y = pqVal[i] / W;
+        printf("(%d, %d, %d)\n", x, y, pqPriority[i]);
     }
     if (idx == -1) {
         printf("Empty\n");
@@ -269,28 +262,32 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     int pqPriority[MAX_QUEUE_SIZE];
     // --
     int start_index = sy * W + sx;
-    enqueue(start_index, 0, &idx, pqVal, pqPriority);
+    enqueue(start_index, -1, &idx, pqVal, pqPriority);
     cost_so_far[start_index] = 1;
     came_from[start_index] = start_index;
     display(idx, pqVal, pqPriority);
     int cx;
     int cy;
     while (!isEmpty(idx)) {
+        printf("Before");
+        display(idx, pqVal, pqPriority);
         int current = dequeue(&idx, pqVal, pqPriority);
-        printf("Dequeued: %d\n", current);
-        // display(idx, pqVal, pqPriority);
+        printf("Dequeued: %d, %d\n", current % W, current / W);
+
+        printf("After");
+        display(idx, pqVal, pqPriority);
         cx = current % W;
         cy = current / W;
-        printf("CX: %d, CY: %d\n", cx, cy);
+        // printf("CX: %d, CY: %d\n", cx, cy);
         if (is_done(cx, cy, tx, ty, obstacle_map)) {
             break;
         }
         int* neighbours = get_neighbours(cx, cy, obstacle_map);
-        print_grid(neighbours, N_NEIGHBOURS, 1);
+        // print_grid(neighbours, N_NEIGHBOURS, 1);
         for (int i = 0; i < N_NEIGHBOURS; i += 2) {
             int nx = neighbours[i];
             int ny = neighbours[i + 1];
-            printf("NX: %d, NY: %d\n", nx, ny);
+            // printf("NX: %d, NY: %d\n", nx, ny);
             if (nx == -1 && ny == -1)
                 continue;
             int new_cost = cost_so_far[cy * W + cx] + 1;
@@ -307,13 +304,15 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
             }
         }
         free(neighbours);
+        printf("Added neighbours\n");
         display(idx, pqVal, pqPriority);
     }
+    print_grid(came_from, W, H);
     if (isEmpty(idx)) {
-        printf("No path found\n");
+        // printf("No path found\n");
         return NULL;
     }
-    printf("A* found a path\n");
+    // printf("A* found a path\n");
     return get_move(sx, sy, cx, cy, came_from);
 }
 
@@ -355,8 +354,9 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 {
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
-    print_grid(obstacle_map, W, H);
-
+    // print_grid(obstacle_map, W, H);
+    printf("ASDASD");
+    int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     for (int i = 0; i < n_robots; i += 2) {
         int x = robots[i];
@@ -378,6 +378,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         } else if (is_free) {
             printf("Free\n");
             free_robots[i / 2] = 1;
+            n_free_robots += 1;
         } else {
             printf("Occupied\n");
             int* move = get_a_star_move(x, y, -1, -1, obstacle_map, get_flee_neighbours,
@@ -391,6 +392,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     }
     int* distance_matrix
         = get_distance_matrix(robots, free_robots, cashbags, n_cashbags, n_robots, obstacle_map);
+    print_grid(distance_matrix, n_robots, n_cashbags / 2);
     int* free_cashbags = calloc(n_cashbags / 2, sizeof(int));
     while (1) {
         int robot_index = -1;
@@ -425,16 +427,42 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             cy, min_distance);
         int* move = get_a_star_move(rx, ry, cx, cy, obstacle_map, get_sneaky_neighbours,
             manhatten_repulsion_heuristic, has_reached_goal);
+        // break;
         if (move != NULL) {
             action[robot_index * 2] = move[0];
             action[robot_index * 2 + 1] = move[1];
             free(move);
         }
+        if (n_free_robots == 0) {
+            break;
+        } else {
+            n_free_robots -= 1;
+        }
     }
-    print_grid(distance_matrix, PLAYER_ROBOTS, n_cashbags / 2);
+    // print_grid(distance_matrix, PLAYER_ROBOTS, n_cashbags / 2);
     free(obstacle_map);
     free(free_robots);
     return action;
 }
 
 // Command: make helper && python main.py
+
+// int idx = -1;
+// int pqVal[MAX_QUEUE_SIZE];
+// int pqPriority[MAX_QUEUE_SIZE];
+// // To enqueue items as per priority
+// enqueue(5, 1, &idx, pqVal, pqPriority);
+// enqueue(10, 3, &idx, pqVal, pqPriority);
+// enqueue(15, 4, &idx, pqVal, pqPriority);
+// enqueue(20, 5, &idx, pqVal, pqPriority);
+// enqueue(500, 2, &idx, pqVal, pqPriority);
+
+// printf("Before Dequeue : \n");
+// display(idx, pqVal, pqPriority);
+
+// // Dequeue the top element
+// dequeue(&idx, pqVal, pqPriority); // 20 dequeued
+// dequeue(&idx, pqVal, pqPriority); // 15 dequeued
+
+// printf("\nAfter Dequeue : \n");
+// display(idx, pqVal, pqPriority);
