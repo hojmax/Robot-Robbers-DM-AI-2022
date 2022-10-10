@@ -3,12 +3,22 @@ import numpy as np
 # import pygame
 import ctypes
 helpers = ctypes.CDLL('./helper.so')
+# --- Standard
 # robots = [19, 25, 116, 42, 80, 96, 65, 76, 87, 61]
 # scrooges = [18, 24, 103, 97, 98, 27, 64, 47, 28, 45, 112, 17, 122, 16]
 # cashbags = [84, 4, 22, 63, 12, 107, 85, 78, 77, 0]
 # dropspots = [14, 78]
 # cash_carried = [0, 0, 0, 0, 0]
 # obstacles = [0, 99, 19, 2, 98, 53, 11, 8]
+
+# --- Bounding-boxes outside screen
+# robots = [75, 119, 60, 88, 57, 90, 47, 69, 73, 37]
+# scrooges = [83, 54, 46, 55, 103, 19, 9, 33, 88, 4, 93, 34, 67, 88]
+# cashbags = []
+# dropspots = []
+# obstacles = [85, 74, 18, 16, 127, 18, 13, 16, 3, 127, 19, 2, 111, 65, 1, 8]
+# cash_carried = [0, 0, 0, 0, 0]
+
 
 helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
@@ -73,7 +83,7 @@ if __name__ == '__main__':
     env = RobotRobbersEnv()
     state = env.reset()
 
-    for _ in range(1):
+    for _ in range(3):
         action = get_action(state)
         print('Action:', action)
         state, reward, done, info = env.step(action)

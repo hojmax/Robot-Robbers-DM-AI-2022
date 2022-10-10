@@ -138,7 +138,7 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
         // Bug in their code, means j <= h and not j < h
         for (int j = 0; j <= h; j++) {
             for (int k = 0; k <= w; k++) {
-                output[(y + j) * W + x + k] = OBSTACLE_INDEX;
+                output[min((y + j), H - 1) * W + min(x + k, W - 1)] = OBSTACLE_INDEX;
             }
         }
     }
