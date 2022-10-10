@@ -374,7 +374,7 @@ void swap(int* x, int* y)
 }
 
 // insert the item at the appropriate position
-void insert(int a[], int data, int* n)
+void insert(int keys[], int values[], int key, int value, int* n)
 {
     if (*n >= MAX_QUEUE_SIZE) {
         printf("%s\n", "The heap is full. Cannot insert");
@@ -382,20 +382,22 @@ void insert(int a[], int data, int* n)
     }
     // first insert the time at the last position of the array
     // and move it up
-    a[*n] = data;
+    keys[*n] = key;
+    values[*n] = value;
     *n = *n + 1;
 
     // move up until the heap property satisfies
     int i = *n - 1;
-    while (i != 0 && a[parent(i)] < a[i]) {
-        swap(&a[parent(i)], &a[i]);
+    while (i != 0 && keys[parent(i)] < keys[i]) {
+        swap(&keys[parent(i)], &keys[i]);
+        swap(&values[parent(i)], &values[i]);
         i = parent(i);
     }
 }
 
 // moves the item at position i of array a
 // into its appropriate position
-void max_heapify(int a[], int i, int n)
+void max_heapify(int keys[], int values[], int i, int n)
 {
     // find left child node
     int left = left_child(i);
@@ -407,12 +409,12 @@ void max_heapify(int a[], int i, int n)
     int largest = i;
 
     // check if the left node is larger than the current node
-    if (left <= n && a[left] > a[largest]) {
+    if (left <= n && keys[left] > keys[largest]) {
         largest = left;
     }
 
     // check if the right node is larger than the current node
-    if (right <= n && a[right] > a[largest]) {
+    if (right <= n && keys[right] > keys[largest]) {
         largest = right;
     }
 
@@ -420,37 +422,31 @@ void max_heapify(int a[], int i, int n)
     // and repeat this process until the current node is larger than
     // the right and the left node
     if (largest != i) {
-        int temp = a[i];
-        a[i] = a[largest];
-        a[largest] = temp;
-        max_heapify(a, largest, n);
+        int temp = keys[i];
+        keys[i] = keys[largest];
+        keys[largest] = temp;
+
+        int temp2 = values[i];
+        values[i] = values[largest];
+        values[largest] = temp2;
+
+        max_heapify(keys, values, largest, n);
     }
 }
-
-// converts an array into a heap
-void build_max_heap(int a[], int n)
-{
-    int i;
-    for (i = n / 2; i >= 0; i--) {
-        max_heapify(a, i, n);
-    }
-}
-
-// returns the  maximum item of the heap
-int get_max(int a[]) { return a[0]; }
 
 // deletes the max item and return
-int extract_max(int a[], int* n)
+int extract_max(int keys[], int values[], int* n)
 {
-    int max_item = a[0];
+    int max_item = values[0];
 
     // replace the first item with the last item
-    a[0] = a[*n - 1];
+    keys[0] = keys[*n - 1];
+    values[0] = values[*n - 1];
     *n = *n - 1;
 
     // maintain the heap property by heapifying the
     // first item
-    max_heapify(a, 0, *n);
+    max_heapify(keys, values, 0, *n);
     return max_item;
 }
 
@@ -470,16 +466,37 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 {
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int n = 0;
-    int keys[MAX_QUEUE_SIZE];
-    // int values[MAX_QUEUE_SIZE];
-    // build_max_heap(keys, n);
-    insert(keys, 55, &n);
-    insert(keys, 56, &n);
-    insert(keys, 57, &n);
-    insert(keys, 58, &n);
-    insert(keys, 100, &n);
+    int* keys = calloc(MAX_QUEUE_SIZE, sizeof(int));
+    int* values = calloc(MAX_QUEUE_SIZE, sizeof(int));
+    insert(keys, values, 55, 99, &n);
+    insert(keys, values, 1, 2, &n);
+    insert(keys, values, 96, 32, &n);
+    insert(keys, values, 42, 34, &n);
+    insert(keys, values, 94, 67, &n);
+    insert(keys, values, 19, 15, &n);
+    insert(keys, values, 40, 66, &n);
+
+    printf("Key heap\n");
     print_heap(keys, n);
-    printf("Max is %d\n", extract_max(keys, &n));
+    printf("Values heap\n");
+    print_heap(values, n);
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    insert(keys, values, 19, 15, &n);
+    insert(keys, values, 40, 66, &n);
+    printf("Key heap\n");
+    print_heap(keys, n);
+    printf("Values heap\n");
+    print_heap(values, n);
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    printf("Max is %d\n", extract_max(keys, values, &n));
+    free(keys);
+    free(values);
     /*
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
     // print_grid(obstacle_map, W, H);
