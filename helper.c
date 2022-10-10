@@ -134,7 +134,7 @@ int* get_radius_map(int radius)
 {
     int side_length = radius * 2 + 1;
     int* output = calloc(side_length * side_length, sizeof(int));
-#pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for (int i = 0; i < radius * 2 + 1; i++) {
         for (int j = 0; j < radius * 2 + 1; j++) {
             int x = i - radius;
@@ -155,7 +155,7 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
     int* output = calloc(W * H, sizeof(int));
     int padded_radius = SCROOGE_RADIUS + 2;
     int* radius_map = get_radius_map(padded_radius);
-#pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < n_scrooges; i += 2) {
         int x = scrooges[i];
         int y = scrooges[i + 1];
@@ -418,6 +418,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
+    // #pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
         int x = robots[i];
         int y = robots[i + 1];
@@ -517,48 +518,48 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     }
     // printf("Free robots: %d %d %d %d %d\n", free_robots[0], free_robots[1], free_robots[2],
     // free_robots[3], free_robots[4]);
-    int* used_scrooge = calloc(n_scrooges / 2, sizeof(int));
-    for (int i = 0; i < PLAYER_ROBOTS; i++) {
-        if (!free_robots[i]) {
-            continue;
-        }
-        int rx = robots[i * 2];
-        int ry = robots[i * 2 + 1];
-        // Get scrooge closest to gold
-        int min_distance = INT_MAX;
-        int scrooge_index = -1;
-        for (int j = 0; j < n_scrooges; j += 2) {
-            if (used_scrooge[j / 2]) {
-                continue;
-            }
-            int sx = scrooges[j];
-            int sy = scrooges[j + 1];
-            for (int k = 0; k < n_cashbags; k += 2) {
-                int cx = cashbags[k];
-                int cy = cashbags[k + 1];
-                int distance = get_custom_distance(sx, sy, cx, cy);
-                if (distance < min_distance) {
-                    min_distance = distance;
-                    scrooge_index = j / 2;
-                }
-            }
-        }
-        if (scrooge_index == -1) {
-            continue;
-        }
-        int tx = scrooges[scrooge_index * 2];
-        int ty = scrooges[scrooge_index * 2 + 1];
-        // printf("Robobt[%d] (%d, %d) is going to pick up scrooge[%d] (%d, %d)\n", i, rx, ry,
-        // scrooge_index, tx, ty);
-        int* move = get_a_star_move(rx, ry, tx, ty, obstacle_map, get_flee_neighbours,
-            manhatten_heuristic, has_reached_goal);
-        if (move != NULL) {
-            used_scrooge[scrooge_index] = 1;
-            action[i * 2] = move[0];
-            action[i * 2 + 1] = move[1];
-            free(move);
-        }
-    }
+    // int* used_scrooge = calloc(n_scrooges / 2, sizeof(int));
+    // for (int i = 0; i < PLAYER_ROBOTS; i++) {
+    //     if (!free_robots[i]) {
+    //         continue;
+    //     }
+    //     int rx = robots[i * 2];
+    //     int ry = robots[i * 2 + 1];
+    //     // Get scrooge closest to gold
+    //     int min_distance = INT_MAX;
+    //     int scrooge_index = -1;
+    //     for (int j = 0; j < n_scrooges; j += 2) {
+    //         if (used_scrooge[j / 2]) {
+    //             continue;
+    //         }
+    //         int sx = scrooges[j];
+    //         int sy = scrooges[j + 1];
+    //         for (int k = 0; k < n_cashbags; k += 2) {
+    //             int cx = cashbags[k];
+    //             int cy = cashbags[k + 1];
+    //             int distance = get_custom_distance(sx, sy, cx, cy);
+    //             if (distance < min_distance) {
+    //                 min_distance = distance;
+    //                 scrooge_index = j / 2;
+    //             }
+    //         }
+    //     }
+    //     if (scrooge_index == -1) {
+    //         continue;
+    //     }
+    //     int tx = scrooges[scrooge_index * 2];
+    //     int ty = scrooges[scrooge_index * 2 + 1];
+    //     // printf("Robobt[%d] (%d, %d) is going to pick up scrooge[%d] (%d, %d)\n", i, rx, ry,
+    //     // scrooge_index, tx, ty);
+    //     int* move = get_a_star_move(rx, ry, tx, ty, obstacle_map, get_flee_neighbours,
+    //         manhatten_heuristic, has_reached_goal);
+    //     if (move != NULL) {
+    //         used_scrooge[scrooge_index] = 1;
+    //         action[i * 2] = move[0];
+    //         action[i * 2 + 1] = move[1];
+    //         free(move);
+    //     }
+    // }
     // printf("\n");
     free(obstacle_map);
     free(free_robots);

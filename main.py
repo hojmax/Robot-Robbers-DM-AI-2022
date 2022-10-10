@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     # --- Dynamic testing
     # import pygame
-    state = env.reset()
+    state = env.reset(715732)
     # clock = pygame.time.Clock()
     while True:
         # clock.tick(24)
