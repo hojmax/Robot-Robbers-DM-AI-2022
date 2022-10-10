@@ -1,4 +1,3 @@
-from environment import RobotRobbersEnv
 import numpy as np
 import ctypes
 helpers = ctypes.CDLL('./helper.so')
