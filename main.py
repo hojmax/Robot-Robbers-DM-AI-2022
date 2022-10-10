@@ -19,6 +19,13 @@ helpers = ctypes.CDLL('./helper.so')
 # obstacles = [85, 74, 18, 16, 127, 18, 13, 16, 3, 127, 19, 2, 111, 65, 1, 8]
 # cash_carried = [0, 0, 0, 0, 0]
 
+# -- High action
+robots = [12, 14, 73, 12, 105, 45, 127, 65, 85, 36]
+scrooges = [102, 46, 124, 48, 118, 66, 87, 9, 97, 28, 101, 95, 85, 79]
+cashbags = [30, 40, 65, 117, 86, 112, 67, 40, 19, 60]
+dropspots = [53, 97, 6, 113, 120, 122]
+obstacles = [22, 99, 8, 19, 73, 45, 6, 15, 100, 11, 12, 18]
+cash_carried = [0, 0, 0, 0, 0]
 
 helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
@@ -28,9 +35,9 @@ def convert_list(lst):
 
 
 def get_action(state):
-    robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
-        state
-    )
+    # robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
+    #     state
+    # )
     action = helpers.get_action(
         convert_list(robots),
         convert_list(scrooges),
@@ -70,12 +77,12 @@ def extract_information(state):
         [[x, y, w, h] for x, y, w, h in state[4] if x >= 0 and y >= 0]
     ).flatten()
     cash_carried = [row[0] for row in state[5] if row[0] >= 0]
-    print('Robots', robots)
-    print('Scrooges', scrooges)
-    print('Cashbags', cashbags)
-    print('Dropspots', dropspots)
-    print('Obstacles', obstacles)
-    print('Cash carried', cash_carried)
+    print('robots =', list(robots))
+    print('scrooges =', list(scrooges))
+    print('cashbags =', list(cashbags))
+    print('dropspots =', list(dropspots))
+    print('obstacles =', list(obstacles))
+    print('cash_carried =', list(cash_carried))
     return robots, scrooges, cashbags, dropspots, cash_carried, obstacles
 
 
@@ -83,7 +90,7 @@ if __name__ == '__main__':
     env = RobotRobbersEnv()
     state = env.reset()
 
-    for _ in range(3):
+    for _ in range(1):
         action = get_action(state)
         print('Action:', action)
         state, reward, done, info = env.step(action)
