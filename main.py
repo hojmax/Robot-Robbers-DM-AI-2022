@@ -21,11 +21,11 @@ if __name__ == '__main__':
     #         print(f'Episode: {ep}, Step: {step}, Total Reward: {info["total_reward"]}')
 
     # --- Dynamic testing
-    # import pygame
-    state = env.reset(715732)
-    # clock = pygame.time.Clock()
+    import pygame
+    state = env.reset()
+    clock = pygame.time.Clock()
     while True:
-        # clock.tick(24)
+        clock.tick(24)
         action = get_action(state)
         # print('Action:', action)
         state, reward, done, info = env.step(action)

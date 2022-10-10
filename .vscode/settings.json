@@ -25,6 +25,9 @@
         "vector": "c",
         "array": "c",
         "utility": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "__string": "c",
+        "ios": "c",
+        "string": "c"
     }
 }
