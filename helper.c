@@ -5,7 +5,6 @@
 
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
-int ALL_MOVES[] = { 0, 0, 0, 1, 0, -1, 1, 0, -1, 0, 1, 1, 1, -1, -1, 1, -1, -1 };
 int OBSTACLE_INDEX = 9;
 int SCROOGE_INDEX = 8;
 int SCROOGE_RADIUS = 15;
@@ -176,24 +175,103 @@ int get_nearest_dropspot(int rx, int ry, int* dropspots, int n_dropspots, int* o
     return min_index;
 }
 
-int* a_star(int sx, int sy, int tx, int ty, int* obstacle_map,
-    int* (*get_neighbours)(int, int, int*), int (*heuristic)(int, int, int, int),
+int* get_move(int sx, int sy, int ex, int ey, int* came_from)
+{
+    int index;
+    do {
+        index = ey * W + ex;
+        int previous = came_from[index];
+        ex = previous % W;
+        ey = previous / W;
+    } while (sx != ex && sy != ey);
+    int second_x = index % W;
+    int second_y = index / W;
+    int* output = calloc(2, sizeof(int));
+    output[0] = second_x - sx;
+    output[1] = second_y - sy;
+    return output;
+}
+
+int manhatten_repulsion_heuristic(int sx, int sy, int ex, int ey, int* obstacle_map)
+{
+    int dx = abs(sx - ex);
+    int dy = abs(sy - ey);
+    // Adding obstacle_map for encouarging the path to go around scrooges
+    return dx + dy - min(dx, dy) + obstacle_map[sy * W + sx];
+}
+
+int* get_sneaky_neighbours(int x, int y, int* obstacle_map)
+{
+    int* output = calloc(16, sizeof(int));
+    int index = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (i == 0 && j == 0)
+                continue;
+            int x2 = x + i;
+            int y2 = y + j;
+            if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
+                int index2 = y2 * W + x2;
+                int value = obstacle_map[index2];
+                if (value != OBSTACLE_INDEX && value != SCROOGE_INDEX) {
+                    output[index] = x2;
+                    output[index + 1] = y2;
+                    index += 2;
+                }
+            }
+        }
+    }
+    return output;
+}
+
+int has_reached_goal(int sx, int sy, int ex, int ey, int* obstacle_map)
+{
+    return sx == ex && sy == ey;
+}
+
+int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
+    int* (*get_neighbours)(int, int, int*), int (*heuristic)(int, int, int, int, int*),
     int (*is_done)(int, int, int, int, int*))
 {
     int* came_from = calloc(W * H, sizeof(int));
     int* cost_so_far = calloc(W * H, sizeof(int));
-    // -- Priority queue of nodes to visit
+    // -- Priority queue of cells to visit
     int idx = -1;
     int pqVal[MAX_QUEUE_SIZE];
     int pqPriority[MAX_QUEUE_SIZE];
     // --
-}
-
-void display(int idx, int* pqVal, int* pqPriority)
-{
-    for (int i = 0; i <= idx; i++) {
-        printf("(%d, %d)\n", pqVal[i], pqPriority[i]);
+    enqueue(sy * W + sx, 0, &idx, pqVal, pqPriority);
+    int cx;
+    int cy;
+    while (!isEmpty(idx)) {
+        int current = dequeue(&idx, pqVal, pqPriority);
+        cx = current % W;
+        cy = current / W;
+        if (is_done(cx, cy, tx, ty, obstacle_map)) {
+            break;
+        }
+        int* neighbours = get_neighbours(cx, cy, obstacle_map);
+        for (int i = 0; i < N_NEIGHBOURS; i++) {
+            int nx = neighbours[i];
+            int ny = neighbours[i + 1];
+            if (nx == -1 && ny == -1)
+                continue;
+            int new_cost = cost_so_far[cy * W + cx] + 1;
+            int is_new = cost_so_far[ny * W + nx] == 0;
+            int is_better = new_cost < cost_so_far[ny * W + nx];
+            if (is_new || is_better) {
+                cost_so_far[ny * W + nx] = new_cost;
+                int priority = new_cost + heuristic(nx, ny, tx, ty, obstacle_map);
+                // Minus sign because of max priority queue
+                enqueue(ny * W + nx, -priority, &idx, pqVal, pqPriority);
+                came_from[ny * W + nx] = current;
+            }
+        }
     }
+    if (isEmpty(idx)) {
+        return NULL;
+    }
+    return get_move(sx, sy, cx, cy, came_from);
 }
 
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
@@ -204,37 +282,28 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
     print_grid(obstacle_map, W, H);
 
-    // int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
-    // for (int i = 0; i < n_robots; i += 2) {
-    //     int x = robots[i];
-    //     int y = robots[i + 1];
-    //     int is_free = obstacle_map[y * W + x] != SCROOGE_INDEX;
-    //     int is_holding_cash = cash_carried[i / 2];
-    //     if (is_free && is_holding_cash) {
-
-    //     } else if (is_free) {
-    //         free_robots[i / 2] = 1;
-    //     } else {
-    //     }
-    // }
-    int idx = -1;
-    int* pqVal = calloc(MAX_QUEUE_SIZE, sizeof(int));
-    int* pqPriority = calloc(MAX_QUEUE_SIZE, sizeof(int));
-    enqueue(5, 1, &idx, pqVal, pqPriority);
-    enqueue(10, 3, &idx, pqVal, pqPriority);
-    enqueue(15, 4, &idx, pqVal, pqPriority);
-    enqueue(20, 5, &idx, pqVal, pqPriority);
-    enqueue(500, 2, &idx, pqVal, pqPriority);
-
-    printf("Before Dequeue : \n");
-    display(idx, pqVal, pqPriority);
-
-    // Dequeue the top element
-    printf("%d", (dequeue(&idx, pqVal, pqPriority))); // 20 dequeued
-    dequeue(&idx, pqVal, pqPriority); // 15 dequeued
-
-    printf("\nAfter Dequeue : \n");
-    display(idx, pqVal, pqPriority);
+    int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
+    for (int i = 0; i < n_robots; i += 2) {
+        int x = robots[i];
+        int y = robots[i + 1];
+        int is_free = obstacle_map[y * W + x] != SCROOGE_INDEX;
+        int is_holding_cash = cash_carried[i / 2];
+        if (is_free && is_holding_cash) {
+            int nearest_dropspot = get_nearest_dropspot(x, y, dropspots, n_dropspots, obstacle_map);
+            int dx = dropspots[nearest_dropspot * 2];
+            int dy = dropspots[nearest_dropspot * 2 + 1];
+            int* move = get_a_star_move(x, y, dx, dy, obstacle_map, get_sneaky_neighbours,
+                manhatten_repulsion_heuristic, has_reached_goal);
+            if (move != NULL) {
+                action[i] = move[0];
+                action[i + 1] = move[1];
+                free(move);
+            }
+        } else if (is_free) {
+            free_robots[i / 2] = 1;
+        } else {
+        }
+    }
 
     return action;
 }
