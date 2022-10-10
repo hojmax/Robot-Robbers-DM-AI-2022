@@ -161,7 +161,7 @@ int get_nearest_dropspot(int rx, int ry, int* dropspots, int n_dropspots, int* o
     for (int i = 0; i < n_dropspots; i += 2) {
         int dx = dropspots[i];
         int dy = dropspots[i + 1];
-        printf("Checking dropspot %d %d\n", dx, dy);
+        // printf("Checking dropspot %d %d\n", dx, dy);
         int is_free = obstacle_map[dy * W + dx] != SCROOGE_INDEX;
         if (!is_free)
             continue;
@@ -363,11 +363,11 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 {
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
-    print_grid(obstacle_map, W, H);
-    int* obstacle_map_2 = calloc(W * H, sizeof(int));
-    for (int i = 0; i < W * H; i++) {
-        obstacle_map_2[i] = obstacle_map[i];
-    }
+    // print_grid(obstacle_map, W, H);
+    // int* obstacle_map_2 = calloc(W * H, sizeof(int));
+    // for (int i = 0; i < W * H; i++) {
+    //     obstacle_map_2[i] = obstacle_map[i];
+    // }
 
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
@@ -379,18 +379,18 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         if (is_free && is_holding_cash) {
             // printf("Free Cash\n");
             int nearest_dropspot = get_nearest_dropspot(x, y, dropspots, n_dropspots, obstacle_map);
-            printf("Nearest dropspot: %d\n", nearest_dropspot);
+            // printf("Nearest dropspot: %d\n", nearest_dropspot);
             if (nearest_dropspot == -1)
                 continue;
             int dx = dropspots[nearest_dropspot * 2];
             int dy = dropspots[nearest_dropspot * 2 + 1];
-            obstacle_map_2[dy * W + dx] = 66;
-            obstacle_map_2[y * W + x] = 77;
-            print_grid(obstacle_map_2, W, H);
-            printf("Moving from robot (%d, %d) to dropspot (%d, %d)", x, y, dx, dy);
+            // obstacle_map_2[dy * W + dx] = 66;
+            // obstacle_map_2[y * W + x] = 77;
+            // print_grid(obstacle_map_2, W, H);
+            // printf("Moving from robot (%d, %d) to dropspot (%d, %d)", x, y, dx, dy);
             int* move = get_a_star_move(x, y, dx, dy, obstacle_map, get_sneaky_neighbours,
                 manhatten_repulsion_heuristic, has_reached_goal);
-            printf("Does move equal null=%d\n", move == NULL);
+            // printf("Does move equal null=%d\n", move == NULL);
             if (move != NULL) {
                 action[i] = move[0];
                 action[i + 1] = move[1];
