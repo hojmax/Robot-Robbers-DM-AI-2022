@@ -414,7 +414,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         }
     }
     if (n_free_robots == 0 || n_cashbags == 0) {
-        printf("No free robots or no cashbags\n");
+        // printf("No free robots or no cashbags\n");
         return action;
     }
     // printf("n_cashbags: %d\n", n_cashbags);
