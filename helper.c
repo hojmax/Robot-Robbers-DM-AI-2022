@@ -58,7 +58,7 @@ int peek(int idx, int* pqVal, int* pqPriority)
     }
 
     // Return index of the element where
-    return pqVal[indexPos];
+    return indexPos;
 }
 
 // This removes the element with highest priority
@@ -79,7 +79,7 @@ int dequeue(int* idx, int* pqVal, int* pqPriority)
 
         // reduce size of priority queue by 1
         *idx -= 1;
-        return indexPos;
+        return pqVal[indexPos];
     }
     return -1;
 }
@@ -183,7 +183,7 @@ int* get_move(int sx, int sy, int ex, int ey, int* came_from)
         int previous = came_from[index];
         ex = previous % W;
         ey = previous / W;
-    } while (sx != ex && sy != ey);
+    } while (sx != ex || sy != ey);
     int second_x = index % W;
     int second_y = index / W;
     int* output = calloc(2, sizeof(int));
@@ -198,6 +198,30 @@ int manhatten_repulsion_heuristic(int sx, int sy, int ex, int ey, int* obstacle_
     int dy = abs(sy - ey);
     // Adding obstacle_map for encouarging the path to go around scrooges
     return dx + dy - min(dx, dy) + obstacle_map[sy * W + sx];
+}
+
+int* get_neighbours_base(int x, int y, int* obstacle_map, int (*condition)(int))
+{
+    int* output = calloc(16, sizeof(int));
+    int index = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (i == 0 && j == 0)
+                continue;
+            int x2 = x + i;
+            int y2 = y + j;
+            if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
+                int index2 = y2 * W + x2;
+                int value = obstacle_map[index2];
+                if (condition(value)) {
+                    output[index] = x2;
+                    output[index + 1] = y2;
+                    index += 2;
+                }
+            }
+        }
+    }
+    return output;
 }
 
 int* get_flee_neighbours(int x, int y, int* obstacle_map)
@@ -275,15 +299,17 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     int pqVal[MAX_QUEUE_SIZE];
     int pqPriority[MAX_QUEUE_SIZE];
     // --
-    enqueue(sy * W + sx, 0, &idx, pqVal, pqPriority);
-    cost_so_far[sy * W + sx] = 1;
-    display(idx, pqVal, pqPriority);
+    int start_index = sy * W + sx;
+    enqueue(start_index, 0, &idx, pqVal, pqPriority);
+    cost_so_far[start_index] = 1;
+    came_from[start_index] = start_index;
+    // display(idx, pqVal, pqPriority);
     int cx;
     int cy;
     while (!isEmpty(idx)) {
         int current = dequeue(&idx, pqVal, pqPriority);
-        printf("Dequeued: %d\n", current);
-        display(idx, pqVal, pqPriority);
+        // printf("Dequeued: %d\n", current);
+        // display(idx, pqVal, pqPriority);
         cx = current % W;
         cy = current / W;
         // printf("CX: %d, CY: %d\n", cx, cy);
@@ -311,13 +337,13 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
                 came_from[neighbour_index] = current;
             }
         }
-        display(idx, pqVal, pqPriority);
+        // display(idx, pqVal, pqPriority);
     }
     if (isEmpty(idx)) {
-        printf("No path found");
+        printf("No path found\n");
         return NULL;
     }
-    printf("A* found a path");
+    printf("A* found a path\n");
     return get_move(sx, sy, cx, cy, came_from);
 }
 
@@ -362,7 +388,6 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             int* move = get_a_star_move(x, y, -1, -1, obstacle_map, get_flee_neighbours,
                 null_heuristic, not_watched_by_scrooge);
             if (move != NULL) {
-                printf("Move NULL");
                 action[i] = move[0];
                 action[i + 1] = move[1];
                 free(move);
