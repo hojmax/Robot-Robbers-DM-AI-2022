@@ -134,6 +134,7 @@ int* get_radius_map(int radius)
 {
     int side_length = radius * 2 + 1;
     int* output = calloc(side_length * side_length, sizeof(int));
+    // #pragma omp parallel for
     for (int i = 0; i < radius * 2 + 1; i++) {
         for (int j = 0; j < radius * 2 + 1; j++) {
             int x = i - radius;
@@ -159,6 +160,7 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
         int y = scrooges[i + 1];
         int w = padded_radius * 2 + 1;
         int h = padded_radius * 2 + 1;
+        // #pragma omp parallel for
         for (int j = 0; j < h; j++) {
             for (int k = 0; k < w; k++) {
                 int value = radius_map[j * w + k];
@@ -179,6 +181,7 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
         int w = obstacles[i + 2];
         int h = obstacles[i + 3];
         // Bug in their code, means j <= h and not j < h
+        // #pragma omp parallel for
         for (int j = 0; j <= h; j++) {
             for (int k = 0; k <= w; k++) {
                 output[min((y + j), H - 1) * W + min(x + k, W - 1)] = OBSTACLE_INDEX;
@@ -244,6 +247,7 @@ int* get_neighbours_base(int x, int y, int* obstacle_map, int (*condition)(int))
 {
     int* output = calloc(16, sizeof(int));
     // needs to be -1 from beginning
+    // #pragma omp parallel for
     for (int i = 0; i < 16; i++) {
         output[i] = -1;
     }
@@ -284,19 +288,6 @@ int* get_sneaky_neighbours(int x, int y, int* obstacle_map)
 int has_reached_goal(int sx, int sy, int ex, int ey, int* obstacle_map)
 {
     return sx == ex && sy == ey;
-}
-
-void display(int idx, int* pqVal, int* pqPriority)
-{
-    for (int i = 0; i <= idx; i++) {
-        int x = pqVal[i] % W;
-        int y = pqVal[i] / W;
-        printf("(%d, %d, %d)\n", x, y, pqPriority[i]);
-    }
-    if (idx == -1) {
-        printf("Empty\n");
-    }
-    printf("\n");
 }
 
 int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
@@ -374,9 +365,11 @@ int* get_distance_matrix(
 {
     int* distance_matrix = calloc(PLAYER_ROBOTS * (n_cashbags / 2), sizeof(int));
     // Default entire distance_matrix to INT_MAX
+    // #pragma omp parallel for
     for (int i = 0; i < PLAYER_ROBOTS * (n_cashbags / 2); i++) {
         distance_matrix[i] = INT_MAX;
     }
+    // #pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
         int rx = robots[i];
         int ry = robots[i + 1];
@@ -419,6 +412,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
+#pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
         int x = robots[i];
         int y = robots[i + 1];
