@@ -1,6 +1,5 @@
 from environment import RobotRobbersEnv
 import numpy as np
-# import pygame
 import ctypes
 helpers = ctypes.CDLL('./helper.so')
 # --- Standard
@@ -20,12 +19,13 @@ helpers = ctypes.CDLL('./helper.so')
 # cash_carried = [0, 0, 0, 0, 0]
 
 # -- High action
-robots = [12, 14, 73, 12, 105, 45, 127, 65, 85, 36]
-scrooges = [102, 46, 124, 48, 118, 66, 87, 9, 97, 28, 101, 95, 85, 79]
-cashbags = [30, 40, 65, 117, 86, 112, 67, 40, 19, 60]
-dropspots = [53, 97, 6, 113, 120, 122]
-obstacles = [22, 99, 8, 19, 73, 45, 6, 15, 100, 11, 12, 18]
-cash_carried = [0, 0, 0, 0, 0]
+# robots = [12, 14, 73, 12, 105, 45, 127, 65, 85, 36]
+# scrooges = [102, 46, 124, 48, 118, 66, 87, 9, 97, 28, 101, 95, 85, 79]
+# cashbags = [30, 40, 65, 117, 86, 112, 67, 40, 19, 60]
+# dropspots = [53, 97, 6, 113, 120, 122]
+# obstacles = [22, 99, 8, 19, 73, 45, 6, 15, 100, 11, 12, 18]
+# cash_carried = [0, 0, 0, 0, 0]
+
 
 helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
@@ -35,9 +35,9 @@ def convert_list(lst):
 
 
 def get_action(state):
-    # robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
-    #     state
-    # )
+    robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
+        state
+    )
     action = helpers.get_action(
         convert_list(robots),
         convert_list(scrooges),
@@ -87,19 +87,21 @@ def extract_information(state):
 
 
 if __name__ == '__main__':
+    import pygame
     env = RobotRobbersEnv()
     state = env.reset()
 
-    for _ in range(1):
+    # --- Static testing
+    # for _ in range(50):
+    #     action = get_action(state)
+    #     print('Action:', action)
+    #     state, reward, done, info = env.step(action)
+
+    # --- Dynamic testing
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(24)
         action = get_action(state)
         print('Action:', action)
         state, reward, done, info = env.step(action)
-
-    # clock = pygame.time.Clock()
-    # while True:
-    #     clock.tick(24)
-    #     print('Trying to get action')
-    #     action = get_action(state)
-    #     state, reward, done, info = env.step(action)
-    # env.render()
-    # break
+        env.render()

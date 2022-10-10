@@ -324,7 +324,10 @@ int* get_distance_matrix(
     int* robots, int* free_robots, int* cashbags, int n_cashbags, int n_robots, int* obstacle_map)
 {
     int* distance_matrix = calloc(PLAYER_ROBOTS * (n_cashbags / 2), sizeof(int));
-    int index = 0;
+    // Default entire distance_matrix to INT_MAX
+    for (int i = 0; i < PLAYER_ROBOTS * (n_cashbags / 2); i++) {
+        distance_matrix[i] = INT_MAX;
+    }
     for (int i = 0; i < n_robots; i += 2) {
         int rx = robots[i];
         int ry = robots[i + 1];
@@ -339,11 +342,9 @@ int* get_distance_matrix(
             } else {
                 distance = get_custom_distance(rx, ry, cx, cy);
             }
-
             // printf("Distance from (%d, %d) to (%d, %d) is %d\n", rx, ry, cx, cy, distance);
-            distance_matrix[index * (n_cashbags / 2) + j / 2] = distance;
+            distance_matrix[(j / 2) * (n_robots / 2) + (i / 2)] = distance;
         }
-        index++;
     }
     return distance_matrix;
 }
@@ -370,8 +371,10 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         int is_free = obstacle_map[y * W + x] != SCROOGE_INDEX;
         int is_holding_cash = cash_carried[i / 2];
         if (is_free && is_holding_cash) {
-            printf("Free Cash\n");
+            // printf("Free Cash\n");
             int nearest_dropspot = get_nearest_dropspot(x, y, dropspots, n_dropspots, obstacle_map);
+            if (nearest_dropspot == -1)
+                continue;
             int dx = dropspots[nearest_dropspot * 2];
             int dy = dropspots[nearest_dropspot * 2 + 1];
             int* move = get_a_star_move(x, y, dx, dy, obstacle_map, get_sneaky_neighbours,
@@ -382,11 +385,11 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
                 free(move);
             }
         } else if (is_free) {
-            printf("Free\n");
+            // printf("Free\n");
             free_robots[i / 2] = 1;
             n_free_robots += 1;
         } else {
-            printf("Occupied\n");
+            // printf("Occupied\n");
             // printf("Robot (%d, %d) is occupied by scrooge\n", x, y);
             int* move = get_a_star_move(x, y, -1, -1, obstacle_map, get_flee_neighbours,
                 null_heuristic, not_watched_by_scrooge);
@@ -403,57 +406,56 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         return action;
     }
     // printf("n_cashbags: %d\n", n_cashbags);
-    // int* distance_matrix
-    //     = get_distance_matrix(robots, free_robots, cashbags, n_cashbags, n_robots, obstacle_map);
-    // print_grid(distance_matrix, n_robots, n_cashbags / 2);
-    // int* free_cashbags = calloc(n_cashbags / 2, sizeof(int));
-    // while (1) {
-    //     printf("Looping\n");
-    //     int robot_index = -1;
-    //     int cash_index = -1;
-    //     int min_distance = INT_MAX;
-    //     for (int i = 0; i < PLAYER_ROBOTS; i++) {
-    //         if (!free_robots[i]) {
-    //             continue;
-    //         }
-    //         for (int j = 0; j < n_cashbags / 2; j++) {
-    //             if (free_cashbags[j]) {
-    //                 continue;
-    //             }
-    //             int distance = distance_matrix[i * (n_cashbags / 2) + j];
-    //             if (distance < min_distance) {
-    //                 min_distance = distance;
-    //                 robot_index = i;
-    //                 cash_index = j;
-    //             }
-    //         }
-    //     }
-    //     if (min_distance == INT_MAX) {
-    //         break;
-    //     }
-    //     free_robots[robot_index] = 0;
-    //     free_cashbags[cash_index] = 1;
-    //     int rx = robots[robot_index * 2];
-    //     int ry = robots[robot_index * 2 + 1];
-    //     int cx = cashbags[cash_index * 2];
-    //     int cy = cashbags[cash_index * 2 + 1];
-    //     printf("Robot (%d,%d) is going to pick up cash at (%d, %d) with distance %d", rx, ry, cx,
-    //         cy, min_distance);
-    //     int* move = get_a_star_move(rx, ry, cx, cy, obstacle_map, get_sneaky_neighbours,
-    //         manhatten_repulsion_heuristic, has_reached_goal);
-    //     // break;
-    //     if (move != NULL) {
-    //         action[robot_index * 2] = move[0];
-    //         action[robot_index * 2 + 1] = move[1];
-    //         free(move);
-    //     }
-    //     if (n_free_robots == 0) {
-    //         break;
-    //     } else {
-    //         n_free_robots--;
-    //     }
-    // }
-    // print_grid(distance_matrix, PLAYER_ROBOTS, n_cashbags / 2);
+    int* distance_matrix
+        = get_distance_matrix(robots, free_robots, cashbags, n_cashbags, n_robots, obstacle_map);
+    // print_grid(distance_matrix, n_robots / 2, n_cashbags / 2);
+    int* occupied_cashbag = calloc(n_cashbags / 2, sizeof(int));
+    while (1) {
+        // printf("Looping\n");
+        int robot_index = -1;
+        int cash_index = -1;
+        int min_distance = INT_MAX;
+        for (int j = 0; j < n_cashbags / 2; j++) {
+            if (occupied_cashbag[j]) {
+                continue;
+            }
+            for (int i = 0; i < PLAYER_ROBOTS; i++) {
+                if (!free_robots[i]) {
+                    continue;
+                }
+                int distance = distance_matrix[j * (n_robots / 2) + i];
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    robot_index = i;
+                    cash_index = j;
+                }
+            }
+        }
+        if (min_distance == INT_MAX) {
+            break;
+        }
+        free_robots[robot_index] = 0;
+        occupied_cashbag[cash_index] = 1;
+        int rx = robots[robot_index * 2];
+        int ry = robots[robot_index * 2 + 1];
+        int cx = cashbags[cash_index * 2];
+        int cy = cashbags[cash_index * 2 + 1];
+        // printf("Robot (%d,%d) is going to pick up cash at (%d, %d) with distance %d", rx, ry, cx,
+            // cy, min_distance);
+        int* move = get_a_star_move(rx, ry, cx, cy, obstacle_map, get_sneaky_neighbours,
+            manhatten_repulsion_heuristic, has_reached_goal);
+        // break;
+        if (move != NULL) {
+            action[robot_index * 2] = move[0];
+            action[robot_index * 2 + 1] = move[1];
+            free(move);
+        }
+        if (n_free_robots == 0) {
+            break;
+        } else {
+            n_free_robots--;
+        }
+    }
     free(obstacle_map);
     free(free_robots);
     return action;
