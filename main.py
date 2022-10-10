@@ -26,6 +26,13 @@ helpers = ctypes.CDLL('./helper.so')
 # obstacles = [22, 99, 8, 19, 73, 45, 6, 15, 100, 11, 12, 18]
 # cash_carried = [0, 0, 0, 0, 0]
 
+# -- Standing still
+robots = [47, 24, 47, 82, 68, 113, 50, 36, 78, 123]
+scrooges = [28, 33, 106, 16, 11, 70, 63, 19, 52, 51, 97, 54, 120, 74]
+cashbags = [77, 49, 59, 42, 107, 1]
+dropspots = [78, 123, 3, 30, 16, 34]
+obstacles = [57, 120, 16, 14, 55, 106, 1, 10, 47, 90, 7, 14, 26, 42, 12, 14]
+cash_carried = [1, 0, 0, 1, 0]
 
 helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
@@ -35,9 +42,9 @@ def convert_list(lst):
 
 
 def get_action(state):
-    robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
-        state
-    )
+    # robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
+    #     state
+    # )
     action = helpers.get_action(
         convert_list(robots),
         convert_list(scrooges),
@@ -87,21 +94,21 @@ def extract_information(state):
 
 
 if __name__ == '__main__':
-    import pygame
+    # import pygame
     env = RobotRobbersEnv()
     state = env.reset()
 
     # --- Static testing
-    # for _ in range(50):
-    #     action = get_action(state)
-    #     print('Action:', action)
-    #     state, reward, done, info = env.step(action)
-
-    # --- Dynamic testing
-    clock = pygame.time.Clock()
-    while True:
-        clock.tick(24)
+    for _ in range(1):
         action = get_action(state)
         print('Action:', action)
         state, reward, done, info = env.step(action)
-        env.render()
+
+    # --- Dynamic testing
+    # clock = pygame.time.Clock()
+    # while True:
+    #     clock.tick(24)
+    #     action = get_action(state)
+    #     print('Action:', action)
+    #     state, reward, done, info = env.step(action)
+    #     env.render()
