@@ -440,7 +440,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     int double_grab_distance = 20;
     int* occupied_cashbag = calloc(n_cashbags / 2, sizeof(int));
-    // #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
         int x = robots[i];
         int y = robots[i + 1];
