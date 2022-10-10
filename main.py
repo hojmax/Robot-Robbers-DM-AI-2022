@@ -7,12 +7,14 @@ dropspots = [14, 78]
 cash_carried = [0, 0, 0, 0, 0]
 obstacles = [0, 99, 19, 2, 98, 53, 11, 8]
 
+helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
+
 
 def convert_list(lst):
     return (ctypes.c_int * len(lst))(*lst)
 
 
-helpers.get_action(
+action = helpers.get_action(
     convert_list(robots),
     convert_list(scrooges),
     convert_list(cashbags),
@@ -26,3 +28,6 @@ helpers.get_action(
     len(cash_carried),
     len(obstacles)
 )
+
+for i in range(10):
+    print(action[i], end=' ')
