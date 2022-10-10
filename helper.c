@@ -200,6 +200,30 @@ int manhatten_repulsion_heuristic(int sx, int sy, int ex, int ey, int* obstacle_
     return dx + dy - min(dx, dy) + obstacle_map[sy * W + sx];
 }
 
+int* get_flee_neighbours(int x, int y, int* obstacle_map)
+{
+    int* output = calloc(16, sizeof(int));
+    int index = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (i == 0 && j == 0)
+                continue;
+            int x2 = x + i;
+            int y2 = y + j;
+            if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
+                int index2 = y2 * W + x2;
+                int value = obstacle_map[index2];
+                if (value != OBSTACLE_INDEX) {
+                    output[index] = x2;
+                    output[index + 1] = y2;
+                    index += 2;
+                }
+            }
+        }
+    }
+    return output;
+}
+
 int* get_sneaky_neighbours(int x, int y, int* obstacle_map)
 {
     int* output = calloc(16, sizeof(int));
@@ -274,6 +298,13 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     return get_move(sx, sy, cx, cy, came_from);
 }
 
+int null_heuristic(int sx, int sy, int ex, int ey, int* obstacle_map) { return 0; }
+
+int is_in_empty_cell(int sx, int sy, int ex, int ey, int* obstacle_map)
+{
+    return obstacle_map[sy * W + sx] == 0;
+}
+
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
     int* obstacles, int n_robots, int n_scrooges, int n_cashbags, int n_dropspots,
     int n_cash_carried, int n_obstacles)
@@ -289,6 +320,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
         int is_free = obstacle_map[y * W + x] != SCROOGE_INDEX;
         int is_holding_cash = cash_carried[i / 2];
         if (is_free && is_holding_cash) {
+            printf("Free Cash");
             int nearest_dropspot = get_nearest_dropspot(x, y, dropspots, n_dropspots, obstacle_map);
             int dx = dropspots[nearest_dropspot * 2];
             int dy = dropspots[nearest_dropspot * 2 + 1];
@@ -300,8 +332,18 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
                 free(move);
             }
         } else if (is_free) {
+            printf("Free");
             free_robots[i / 2] = 1;
         } else {
+            printf("Occupied");
+            int* move = get_a_star_move(
+                x, y, -1, -1, obstacle_map, get_flee_neighbours, null_heuristic, is_in_empty_cell);
+            printf("Move: %d %d\n", move[0], move[1]);
+            if (move != NULL) {
+                action[i] = move[0];
+                action[i + 1] = move[1];
+                free(move);
+            }
         }
     }
 
