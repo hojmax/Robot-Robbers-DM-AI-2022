@@ -1,2 +1,2 @@
 helper: helper.c
-	gcc -fPIC -shared -o helper.so helper.c -lm
+	gcc -shared -o libhelper.so -fPIC helper.c

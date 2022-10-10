@@ -1,6 +1,6 @@
 import numpy as np
 import ctypes
-helpers = ctypes.CDLL('./helper.so')
+helpers = ctypes.CDLL('./libhelper.so')
 helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
 
