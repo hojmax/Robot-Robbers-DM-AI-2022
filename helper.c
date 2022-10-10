@@ -134,7 +134,7 @@ int* get_radius_map(int radius)
 {
     int side_length = radius * 2 + 1;
     int* output = calloc(side_length * side_length, sizeof(int));
-    // #pragma omp parallel for
+#pragma omp parallel for collapse(2)
     for (int i = 0; i < radius * 2 + 1; i++) {
         for (int j = 0; j < radius * 2 + 1; j++) {
             int x = i - radius;
@@ -155,12 +155,12 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
     int* output = calloc(W * H, sizeof(int));
     int padded_radius = SCROOGE_RADIUS + 2;
     int* radius_map = get_radius_map(padded_radius);
+#pragma omp parallel for
     for (int i = 0; i < n_scrooges; i += 2) {
         int x = scrooges[i];
         int y = scrooges[i + 1];
         int w = padded_radius * 2 + 1;
         int h = padded_radius * 2 + 1;
-        // #pragma omp parallel for
         for (int j = 0; j < h; j++) {
             for (int k = 0; k < w; k++) {
                 int value = radius_map[j * w + k];
@@ -412,7 +412,6 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
 
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
-#pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
         int x = robots[i];
         int y = robots[i + 1];
