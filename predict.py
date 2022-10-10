@@ -51,6 +51,12 @@ def extract_information(state):
         [[x, y, w, h] for x, y, w, h in state[4] if x >= 0 and y >= 0]
     ).flatten()
     cash_carried = [row[0] for row in state[5] if row[0] >= 0]
+    print('Robots:', robots)
+    print('Scrooges:', scrooges)
+    print('Cashbags:', cashbags)
+    print('Dropspots:', dropspots)
+    print('Obstacles:', obstacles)
+    print('Cash carried:', cash_carried)
     return robots, scrooges, cashbags, dropspots, cash_carried, obstacles
 
 # Man skal blot køre

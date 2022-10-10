@@ -224,16 +224,16 @@ int* get_neighbours_base(int x, int y, int* obstacle_map, int (*condition)(int))
     }
     return output;
 }
+int flee_condition(int value) { return value != OBSTACLE_INDEX; }
 
 int* get_flee_neighbours(int x, int y, int* obstacle_map)
 {
-    int flee_condition(int value) { return value != OBSTACLE_INDEX; }
     return get_neighbours_base(x, y, obstacle_map, flee_condition);
 }
+int sneaky_condition(int value) { return value != OBSTACLE_INDEX && value != SCROOGE_INDEX; }
 
 int* get_sneaky_neighbours(int x, int y, int* obstacle_map)
 {
-    int sneaky_condition(int value) { return value != OBSTACLE_INDEX && value != SCROOGE_INDEX; }
     return get_neighbours_base(x, y, obstacle_map, sneaky_condition);
 }
 
