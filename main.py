@@ -94,7 +94,7 @@ def extract_information(state):
 
 
 if __name__ == '__main__':
-    import pygame
+    # import pygame
     env = RobotRobbersEnv()
     state = env.reset()
 
@@ -105,9 +105,9 @@ if __name__ == '__main__':
     #     state, reward, done, info = env.step(action)
 
     # --- Dynamic testing
-    clock = pygame.time.Clock()
+    # clock = pygame.time.Clock()
     while True:
-        clock.tick(24)
+        # clock.tick(24)
         action = get_action(state)
         # print('Action:', action)
         state, reward, done, info = env.step(action)
