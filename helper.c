@@ -9,7 +9,7 @@
 int OBSTACLE_INDEX = 9;
 int SCROOGE_INDEX = 8;
 int SCROOGE_RADIUS = 15;
-int NEAR_SCROOGE_RADIUS = 16;
+int NEAR_SCROOGE_RADIUS = 6;
 int ACTION_SIZE = 10;
 int PLAYER_ROBOTS = 5;
 int N_NEIGHBOURS = 16;
@@ -142,7 +142,7 @@ int* get_radius_map(int radius)
 {
     int side_length = radius * 2 + 1;
     int* output = calloc(side_length * side_length, sizeof(int));
-#pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for (int i = 0; i < radius * 2 + 1; i++) {
         for (int j = 0; j < radius * 2 + 1; j++) {
             int x = i - radius;
@@ -163,7 +163,7 @@ int* get_obstacle_map(int* scrooges, int* obstacles, int n_scrooges, int n_obsta
     int* output = calloc(W * H, sizeof(int));
     int padded_radius = SCROOGE_RADIUS + 5;
     int* radius_map = get_radius_map(padded_radius);
-#pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < n_scrooges; i += 2) {
         int x = scrooges[i];
         int y = scrooges[i + 1];
@@ -463,7 +463,7 @@ int not_watched_by_scrooge(int sx, int sy, int ex, int ey, int* obstacle_map)
 }
 
 void herding(int i, int* robots, int n_scrooges, int* used_scrooge, int* scrooges, int n_cashbags,
-    int* cashbags, int* obstacle_map, int* action, int* cashbag_map)
+    int* cashbags, int* obstacle_map, int* action, int* cashbag_map, int game_ticks)
 {
     int rx = robots[i * 2];
     int ry = robots[i * 2 + 1];
@@ -491,9 +491,10 @@ void herding(int i, int* robots, int n_scrooges, int* used_scrooge, int* scrooge
     int ty = scrooges[scrooge_index * 2 + 1];
     int scrooge_closest_bottom = ty / (H / 2);
     int scrooge_closest_right = tx / (W / 2);
-    int s_restrain = 10;
-    tx = max(min(tx - s_restrain + scrooge_closest_right * 2 * s_restrain, W - 1), 0);
-    ty = max(min(ty - s_restrain + scrooge_closest_bottom * 2 * s_restrain, H - 1), 0);
+    int rotation_radius = 5;
+    int rotation_speed = 20;
+    tx = max(min(tx + cos(game_ticks / rotation_speed) * rotation_radius, W - 1), 0);
+    ty = max(min(ty + sin(game_ticks / rotation_speed) * rotation_radius, H - 1), 0);
     // printf("Robobt[%d] (%d, %d) is going to pick up scrooge[%d] (%d, %d)\n", i, rx, ry,
     // scrooge_index, tx, ty);
     // int* move = get_a_star_move(rx, ry, tx, ty, obstacle_map, get_flee_neighbours,
@@ -522,11 +523,14 @@ void herding(int i, int* robots, int n_scrooges, int* used_scrooge, int* scrooge
 
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
     int* obstacles, int n_robots, int n_scrooges, int n_cashbags, int n_dropspots,
-    int n_cash_carried, int n_obstacles)
+    int n_cash_carried, int n_obstacles, int game_ticks)
 {
+    // printf("Game ticks: %d\n", game_ticks);
+    // printf("Float sine of game_ticks %f\n", sin(game_ticks / 10));
     srand(42); // Random seed 42
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
+    // print_grid(obstacle_map, W, H);
     int* cashbag_map = calloc(W * H, sizeof(int));
     // print_grid(obstacle_map, W, H);
     // print_grid(obstacle_map, W, H);
@@ -543,6 +547,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             n_free_cashbags++;
         }
     }
+    // print_grid(cashbag_map, W, H);
     int n_free_robots = 0;
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     int* occupied_robots = calloc(PLAYER_ROBOTS, sizeof(int));
@@ -643,7 +648,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             }
         } else {
             herding(i, robots, n_scrooges, used_scrooge, scrooges, n_cashbags, cashbags,
-                obstacle_map, action, cashbag_map);
+                obstacle_map, action, cashbag_map, game_ticks);
         }
     }
     // if (n_free_robots == 0 || n_cashbags == 0) {
@@ -715,7 +720,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
             continue;
         }
         herding(i, robots, n_scrooges, used_scrooge, scrooges, n_cashbags, cashbags, obstacle_map,
-            action, cashbag_map);
+            action, cashbag_map, game_ticks);
     }
     // printf("\n");
     free(obstacle_map);

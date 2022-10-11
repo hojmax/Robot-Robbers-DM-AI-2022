@@ -23,10 +23,12 @@ if __name__ == '__main__':
     # --- Dynamic testing
     import pygame
     state = env.reset()
+    tick = 0
     clock = pygame.time.Clock()
     while True:
         clock.tick(24)
-        action = get_action(state)
+        action = get_action(state, tick)
         # print('Action:', action)
         state, reward, done, info = env.step(action)
+        tick += 1
         env.render()
