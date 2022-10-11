@@ -9,6 +9,7 @@
 int OBSTACLE_INDEX = 9;
 int SCROOGE_INDEX = 8;
 int SCROOGE_RADIUS = 15;
+int NEAR_SCROOGE_RADIUS = 16;
 int ACTION_SIZE = 10;
 int PLAYER_ROBOTS = 5;
 int N_NEIGHBOURS = 16;
@@ -30,6 +31,12 @@ void swap(int* x, int* y)
     int temp = *x;
     *x = *y;
     *y = temp;
+}
+
+int is_cashbag_free(int cx, int cy, int* obstacle_map)
+{
+    int obstacle_value = obstacle_map[cy * W + cx];
+    return obstacle_value != SCROOGE_INDEX && obstacle_value != NEAR_SCROOGE_RADIUS;
 }
 
 // insert the item at the appropriate position
@@ -245,9 +252,10 @@ int get_nearest_cashbag(int rx, int ry, int* cashbags, int n_cashbags, int* obst
         int dx = cashbags[i];
         int dy = cashbags[i + 1];
         // printf("Checking dropspot %d %d\n", dx, dy);
-        int is_free = obstacle_map[dy * W + dx] != SCROOGE_INDEX;
-        if (!is_free)
+        int obstacle_value = obstacle_map[dy * W + dx];
+        if (!is_cashbag_free(dx, dy, obstacle_map)) {
             continue;
+        }
         int distance = get_custom_distance(rx, ry, dx, dy);
         if (distance < min_distance) {
             min_distance = distance;
@@ -512,7 +520,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* obstacles, int n_robots, int n_scrooges, int n_cashbags, int n_dropspots,
     int n_cash_carried, int n_obstacles)
 {
-    srand(time(NULL)); // Reset random seed
+    srand(42); // Random seed 42
     int* action = calloc(ACTION_SIZE, sizeof(int));
     int* obstacle_map = get_obstacle_map(scrooges, obstacles, n_scrooges, n_obstacles);
     // print_grid(obstacle_map, W, H);
@@ -525,7 +533,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     for (int i = 0; i < n_cashbags; i += 2) {
         int cx = cashbags[i];
         int cy = cashbags[i + 1];
-        if (obstacle_map[cy * W + cx] != SCROOGE_INDEX) {
+        if (is_cashbag_free(cx, cy, obstacle_map)) {
             n_free_cashbags++;
         }
     }
