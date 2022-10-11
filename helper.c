@@ -468,11 +468,11 @@ void herding(int i, int* robots, int n_scrooges, int* used_scrooge, int* scrooge
     }
     int tx = scrooges[scrooge_index * 2];
     int ty = scrooges[scrooge_index * 2 + 1];
-    int scrooge_closest_top = ty / (H / 2);
-    int scrooge_closest_left = tx / (W / 2);
+    int scrooge_closest_bottom = ty / (H / 2);
+    int scrooge_closest_right = tx / (W / 2);
     int s_restrain = 3;
-    tx = max(min(tx + s_restrain - scrooge_closest_left * 2 * s_restrain, W - 1), 0);
-    ty = max(min(ty + s_restrain - scrooge_closest_top * 2 * s_restrain, H - 1), 0);
+    tx = max(min(tx - s_restrain + scrooge_closest_right * 2 * s_restrain, W - 1), 0);
+    ty = max(min(ty - s_restrain + scrooge_closest_bottom * 2 * s_restrain, H - 1), 0);
     // printf("Robobt[%d] (%d, %d) is going to pick up scrooge[%d] (%d, %d)\n", i, rx, ry,
     // scrooge_index, tx, ty);
     // int* move = get_a_star_move(rx, ry, tx, ty, obstacle_map, get_flee_neighbours,
@@ -533,7 +533,7 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* free_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     int* occupied_robots = calloc(PLAYER_ROBOTS, sizeof(int));
     int* used_scrooge = calloc(n_scrooges / 2, sizeof(int));
-    int double_grab_distance = 20;
+    int double_grab_distance = 30;
     int* occupied_cashbag = calloc(n_cashbags / 2, sizeof(int));
     // #pragma omp parallel for
     for (int i = 0; i < n_robots; i += 2) {
@@ -609,9 +609,9 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     // ***** hvis n_free_robots > n_free_cashbags, så skal vi flygte med n_free_cashbags -
     // n_free_robots robotter
     int lacking_robots = n_free_cashbags - n_free_robots;
-    printf("Lacking robots: %d\n", lacking_robots);
-    printf("Occupied robots: %d %d %d %d %d\n", occupied_robots[0], occupied_robots[1],
-        occupied_robots[2], occupied_robots[3]);
+    // printf("Lacking robots: %d\n", lacking_robots);
+    // printf("Occupied robots: %d %d %d %d %d\n", occupied_robots[0], occupied_robots[1],
+    //     occupied_robots[2], occupied_robots[3]);
     for (int i = 0; i < PLAYER_ROBOTS; i++) {
         if (occupied_robots[i] == 0) {
             continue;
@@ -628,7 +628,8 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
                 free(move);
             }
         } else {
-            printf("Should interfeer!!");
+            herding(i, robots, n_scrooges, used_scrooge, scrooges, n_cashbags, cashbags,
+                obstacle_map, action);
         }
     }
     // if (n_free_robots == 0 || n_cashbags == 0) {
