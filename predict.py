@@ -1,6 +1,6 @@
 import numpy as np
 import ctypes
-ai = ctypes.CDLL('./ai.so')
+ai = ctypes.CDLL('./ai/ai.so')
 ai.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
 
@@ -19,12 +19,12 @@ def get_action(state, game_tick, end_tick):
         convert_list(dropspots),
         convert_list(cash_carried),
         convert_list(obstacles),
-        len(robots),
-        len(scrooges),
-        len(cashbags),
-        len(dropspots),
+        len(robots) // 2,
+        len(scrooges) // 2,
+        len(cashbags) // 2,
+        len(dropspots) // 2,
         len(cash_carried),
-        len(obstacles),
+        len(obstacles) // 4,
         game_tick,
         end_tick
     )

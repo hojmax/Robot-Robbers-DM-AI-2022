@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "random": "c",
+        "constants.h": "c",
+        "binary_heap.h": "c",
+        "math.h": "c"
+    }
+}

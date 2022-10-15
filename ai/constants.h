@@ -1,0 +1,11 @@
+#ifndef CONSTANTS_H_INCLUDED
+#define CONSTANTS_H_INCLUDED
+
+#define SCROOGE_RADIUS 15
+#define HERDRING_ROBOT 0
+#define W 128
+#define H 128
+#define MAX_HEAP_SIZE 128 * 128
+#define N_NEIGHBOURS 8
+
+#endif
