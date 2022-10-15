@@ -148,7 +148,8 @@ class RobotRobbersEnv(gym.Env):
         # Move scrooges
         self._move_scrooges()
 
-        n_cashbags_on_screen = int(self._n_cashbags + self._cashbag_carriers.sum())
+        n_cashbags_on_screen = int(
+            self._n_cashbags + self._cashbag_carriers.sum())
 
         if n_cashbags_on_screen < self.max_n_cashbags:
             for ci in range(self.max_n_cashbags):
@@ -158,7 +159,8 @@ class RobotRobbersEnv(gym.Env):
                     self._n_cashbags += 1
 
         if self._n_dropspots < self.max_n_dropspots:
-            self._dropspot_positions[self._n_dropspots, :] = self._get_free_cell()
+            self._dropspot_positions[self._n_dropspots,
+                                     :] = self._get_free_cell()
             self._n_dropspots += 1
 
         episode_reward = self._reward
@@ -197,22 +199,22 @@ class RobotRobbersEnv(gym.Env):
             ))
 
             self.robot_sprite = pygame.transform.scale(
-                pygame.image.load(path.join('sprites', 'robot.png')),
+                pygame.image.load(path.join('env/sprites', 'robot.png')),
                 (self.scaling * 2, self.scaling * 2)
             )
 
             self.scrooge_sprite = pygame.transform.scale(
-                pygame.image.load(path.join('sprites', 'scrooge.png')),
+                pygame.image.load(path.join('env/sprites', 'scrooge.png')),
                 (self.scaling * 2, self.scaling * 2)
             )
 
             self.cashbag_sprite = pygame.transform.scale(
-                pygame.image.load(path.join('sprites', 'cashbag.png')),
+                pygame.image.load(path.join('env/sprites', 'cashbag.png')),
                 (self.scaling * 1.4, self.scaling * 1.4)
             )
 
             self.dropspot_sprite = pygame.transform.scale(
-                pygame.image.load(path.join('sprites', 'dropspot.png')),
+                pygame.image.load(path.join('env/sprites', 'dropspot.png')),
                 (self.scaling * 2, self.scaling * 2)
             )
 

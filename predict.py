@@ -1,7 +1,7 @@
 import numpy as np
 import ctypes
-helpers = ctypes.CDLL('./libhelper.so')
-helpers.get_action.restype = ctypes.POINTER(ctypes.c_int)
+ai = ctypes.CDLL('./ai.so')
+ai.get_action.restype = ctypes.POINTER(ctypes.c_int)
 
 
 def convert_list(lst):
@@ -12,7 +12,7 @@ def get_action(state, game_ticks):
     robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
         state
     )
-    action = helpers.get_action(
+    action = ai.get_action(
         convert_list(robots),
         convert_list(scrooges),
         convert_list(cashbags),
@@ -27,10 +27,7 @@ def get_action(state, game_ticks):
         len(obstacles),
         game_ticks
     )
-    output = []
-    for i in range(10):
-        output.append(action[i])
-    return output
+    return [action[i] for i in range(10)]
 
 
 def extract_information(state):
@@ -52,13 +49,5 @@ def extract_information(state):
         [[x, y, w, h] for x, y, w, h in state[4] if x >= 0 and y >= 0]
     ).flatten()
     cash_carried = [row[0] for row in state[5] if row[0] >= 0]
-    # print('Robots:', robots)
-    # print('Scrooges:', scrooges)
-    # print('Cashbags:', cashbags)
-    # print('Dropspots:', dropspots)
-    # print('Obstacles:', obstacles)
-    # print('Cash carried:', cash_carried)
-    return robots, scrooges, cashbags, dropspots, cash_carried, obstacles
 
-# Man skal blot køre
-# action = get_action(state)
+    return robots, scrooges, cashbags, dropspots, cash_carried, obstacles

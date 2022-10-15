@@ -1,2 +1,2 @@
-helper: helper.c
-	gcc-11 -fPIC -shared -o libhelper.so helper.c -lm -fopenmp
+ai: ai.c
+	gcc -fPIC -shared -o ai.so ai.c -lm
