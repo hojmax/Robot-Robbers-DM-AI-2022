@@ -8,7 +8,7 @@ def convert_list(lst):
     return (ctypes.c_int * len(lst))(*lst)
 
 
-def get_action(state, game_ticks):
+def get_action(state, game_tick, end_tick):
     robots, scrooges, cashbags, dropspots, cash_carried, obstacles = extract_information(
         state
     )
@@ -25,7 +25,8 @@ def get_action(state, game_ticks):
         len(dropspots),
         len(cash_carried),
         len(obstacles),
-        game_ticks
+        game_tick,
+        end_tick
     )
     return [action[i] for i in range(10)]
 
