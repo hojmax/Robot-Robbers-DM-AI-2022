@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int* get_move(int sx, int sy, int ex, int ey, int* came_from)
+int* get_initial_move(int sx, int sy, int ex, int ey, int* came_from)
 {
     int index;
     do {
@@ -20,9 +20,37 @@ int* get_move(int sx, int sy, int ex, int ey, int* came_from)
     return move;
 }
 
-int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
-    int* (*get_neighbours)(int, int, int*, int*), int (*heuristic)(int, int, int, int, int*),
-    int (*is_done)(int, int, int, int, int*), int* cashbag_map)
+int* get_neighbours_base(int x, int y, int** info)
+{
+    int* output = calloc(16, sizeof(int));
+    for (int i = 0; i < 16; i++) {
+        output[i] = -1;
+    }
+    int index = 0;
+    int all_moves[] = { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1 };
+    for (int a = 0; a < 16; a += 2) {
+        int i = all_moves[a];
+        int j = all_moves[a + 1];
+        if (i == 0 && j == 0)
+            continue;
+        int x2 = x + i;
+        int y2 = y + j;
+        if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
+            int index2 = y2 * W + x2;
+            int value = obstacle_map[index2];
+            if (condition(obstacle_map, x2, y2, cashbag_map)) {
+                output[index] = x2;
+                output[index + 1] = y2;
+                index += 2;
+            }
+        }
+    }
+    return output;
+}
+
+int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int, int, int**),
+    int (*heuristic)(int, int, int, int, int**), int (*is_done)(int, int, int, int, int**),
+    int** info)
 {
     int* came_from = calloc(W * H, sizeof(int));
     int* cost_so_far = calloc(W * H, sizeof(int));
@@ -41,10 +69,10 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
         int current = extract_max(keys, values, &n);
         cx = current % W;
         cy = current / W;
-        if (is_done(cx, cy, tx, ty, obstacle_map)) {
+        if (is_done(cx, cy, tx, ty, info)) {
             break;
         }
-        int* neighbours = get_neighbours(cx, cy, obstacle_map, cashbag_map);
+        int* neighbours = get_neighbours(cx, cy, info);
         for (int i = 0; i < N_NEIGHBOURS; i++) {
             int nx = neighbours[2 * i];
             int ny = neighbours[2 * i + 1];
@@ -57,7 +85,7 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
             int is_better = new_cost < current_cost;
             if (is_new || is_better) {
                 cost_so_far[neighbour_index] = new_cost;
-                int priority = new_cost + heuristic(nx, ny, tx, ty, obstacle_map);
+                int priority = new_cost + heuristic(nx, ny, tx, ty, info);
                 insert(keys, values, -priority, neighbour_index, &n);
                 came_from[neighbour_index] = current;
             }
@@ -70,5 +98,5 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* obstacle_map,
     if (isEmpty) {
         return NULL;
     }
-    return get_move(sx, sy, cx, cy, came_from);
+    return get_initial_move(sx, sy, cx, cy, came_from);
 }
