@@ -18,8 +18,6 @@ void swap(int* x, int* y)
 
 void insert(int* keys, int* values, int key, int value, int* n)
 {
-    assert(*n < MAX_HEAP_SIZE);
-
     keys[*n] = key;
     values[*n] = value;
     *n = *n + 1;

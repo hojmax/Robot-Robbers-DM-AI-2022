@@ -36,28 +36,37 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int n_cash_carried, int n_obstacles, int game_ticks)
 {
     int* actions = calloc(2 * n_robots, sizeof(int));
-    int* scrooge_radius_map = get_scrooge_radius_map(scrooges, n_scrooges);
     int* obstacle_map = get_obstacle_map(obstacles, n_obstacles);
     int* cashbag_map = get_cashbag_map(cashbags, n_cashbags);
     int* scrooge_map = get_scrooge_map(scrooges, n_scrooges);
-    free(scrooge_radius_map);
+    int* scrooge_radius_map_split;
+    int* scrooge_radius_map;
+    fill_scrooge_radius_maps(scrooges, n_scrooges, &scrooge_radius_map_split, &scrooge_radius_map);
+    int** info = calloc(6, sizeof(int*));
+    info[0] = obstacle_map;
+    info[1] = scrooge_radius_map;
+    info[2] = cashbag_map;
+    info[3] = scrooge_map;
+    info[4] = scrooge_radius_map_split;
     free(obstacle_map);
     free(cashbag_map);
     free(scrooge_map);
-
-    int n = 0;
-    int* keys = calloc(MAX_HEAP_SIZE, sizeof(int));
-    int* values = calloc(MAX_HEAP_SIZE, sizeof(int));
-    insert(keys, values, 10, 45, &n);
-    insert(keys, values, 92, 15, &n);
-    insert(keys, values, 53, 75, &n);
-    insert(keys, values, 12, 40, &n);
-    printf("%d\n", extract_max(keys, values, &n));
-    printf("%d\n", extract_max(keys, values, &n));
-    printf("%d\n", extract_max(keys, values, &n));
-    printf("%d\n\n", extract_max(keys, values, &n));
-
+    free(scrooge_radius_map);
+    free(scrooge_radius_map_split);
     return actions;
 }
+
+// -- MAX HEAP TEST
+// int n = 0;
+// int* keys = calloc(MAX_HEAP_SIZE, sizeof(int));
+// int* values = calloc(MAX_HEAP_SIZE, sizeof(int));
+// insert(keys, values, 10, 45, &n);
+// insert(keys, values, 92, 15, &n);
+// insert(keys, values, 53, 75, &n);
+// insert(keys, values, 12, 40, &n);
+// printf("%d\n", extract_max(keys, values, &n));
+// printf("%d\n", extract_max(keys, values, &n));
+// printf("%d\n", extract_max(keys, values, &n));
+// printf("%d\n\n", extract_max(keys, values, &n));
 
 // cd ai && make ai && cd .. && python main.py

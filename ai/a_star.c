@@ -20,32 +20,36 @@ int* get_initial_move(int sx, int sy, int ex, int ey, int* came_from)
     return move;
 }
 
-int* get_neighbours_base(int x, int y, int** info)
+int* get_neighbours_base(int x, int y, int (*neighbour_condition)(int, int, int**), int** info)
 {
-    int* output = calloc(16, sizeof(int));
-    for (int i = 0; i < 16; i++) {
+    int* output = calloc(2 * N_NEIGHBOURS, sizeof(int));
+    for (int i = 0; i < 2 * N_NEIGHBOURS; i++) {
         output[i] = -1;
     }
     int index = 0;
+    int n_moves = 8;
     int all_moves[] = { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1 };
-    for (int a = 0; a < 16; a += 2) {
-        int i = all_moves[a];
-        int j = all_moves[a + 1];
-        if (i == 0 && j == 0)
-            continue;
-        int x2 = x + i;
-        int y2 = y + j;
-        if (x2 >= 0 && x2 < W && y2 >= 0 && y2 < H) {
-            int index2 = y2 * W + x2;
-            int value = obstacle_map[index2];
-            if (condition(obstacle_map, x2, y2, cashbag_map)) {
-                output[index] = x2;
-                output[index + 1] = y2;
-                index += 2;
-            }
+    for (int a = 0; a < n_moves; a++) {
+        int dx = all_moves[2 * a];
+        int dy = all_moves[2 * a + 1];
+        int nx = x + dx;
+        int ny = y + dy;
+        int is_bounded = nx >= 0 && nx < W && ny >= 0 && ny < H;
+        if (is_bounded && neighbour_condition(nx, ny, info)) {
+            int index2 = ny * W + nx;
+            output[2 * index] = nx;
+            output[2 * index + 1] = ny;
+            index++;
         }
     }
     return output;
+}
+
+int null_heuristic(int sx, int sy, int ex, int ey, int** info) { return 0; }
+int no_scrooge_radius_neighbour_condition(int sx, int sy, int ex, int ey, int** info)
+{
+    int* obstacle_map = info[0];
+    return obstacle_map[sy * W + sx];
 }
 
 int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int, int, int**),
@@ -56,8 +60,8 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int,
     int* cost_so_far = calloc(W * H, sizeof(int));
 
     int n = 0;
-    int* keys = calloc(MAX_HEAP_SIZE, sizeof(int));
-    int* values = calloc(MAX_HEAP_SIZE, sizeof(int));
+    int* keys = calloc(W * H, sizeof(int));
+    int* values = calloc(W * H, sizeof(int));
 
     int start_index = sy * W + sx;
     insert(keys, values, 0, start_index, &n);
