@@ -47,7 +47,7 @@ int* get_scrooge_radius_map(int* scrooges, int n_scrooges)
     return scrooge_map;
 }
 
-int* get_obstacle_map(int* obstacles, int n_obstacles)
+int* get_obstacle_map(int* obstacles, int n_obstacles, int padding)
 {
     int* obstacle_map = calloc(W * H, sizeof(int));
 
@@ -57,12 +57,12 @@ int* get_obstacle_map(int* obstacles, int n_obstacles)
         int w = obstacles[4 * i + 2];
         int h = obstacles[4 * i + 3];
         // Bug in their code, means j <= h and not j < h. Same for k.
-        for (int j = 0; j <= h; j++) {
+        for (int j = -padding; j <= h + padding; j++) {
             int new_y = y + j;
             if (new_y >= H) {
                 break;
             }
-            for (int k = 0; k <= w; k++) {
+            for (int k = -padding; k <= w + padding; k++) {
                 int new_x = x + k;
                 if (new_x >= W) {
                     break;

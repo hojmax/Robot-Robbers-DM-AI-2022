@@ -47,12 +47,37 @@ int* get_neighbours_base(
     return output;
 }
 
-int null_heuristic(int sx, int sy, int ex, int ey, StateInfo info) { return 0; }
-
-int not_watched_is_done(int sx, int sy, int ex, int ey, StateInfo info)
+int get_custom_distance(int x1, int y1, int x2, int y2)
 {
-    int index = sy * W + sx;
-    return !info.obstacle_map[index] && !info.scrooge_radius_map[index];
+    int delta_x = abs(x1 - x2);
+    int delta_y = abs(y1 - y2);
+    int distance = delta_x + delta_y - min(delta_x, delta_y);
+    return distance;
+}
+
+int herding_heuristic(int sx, int sy, int ex, int ey, StateInfo info)
+{
+    return get_custom_distance(sx, sy, ex, ey);
+}
+
+int herding_is_done(int sx, int sy, int ex, int ey, StateInfo info)
+{
+    int distance = get_custom_distance(sx, sy, ex, ey);
+    return distance < SCROOGE_RADIUS_CUSTOM;
+}
+
+int herding_neighbour_condition(int x, int y, StateInfo info)
+{
+    int index = y * W + x;
+    int is_cashbag = info.cashbag_map[index];
+    int is_obstacle = info.padded_obstacle_map[index];
+    int is_scrooge = info.scrooge_map[index];
+    return !(is_cashbag || is_obstacle || is_scrooge);
+}
+
+int* get_herding_neighbours(int x, int y, StateInfo info)
+{
+    return get_neighbours_base(x, y, herding_neighbour_condition, info);
 }
 
 int flee_neighbour_condition(int x, int y, StateInfo info)
@@ -62,6 +87,14 @@ int flee_neighbour_condition(int x, int y, StateInfo info)
     int is_obstacle = info.obstacle_map[index];
     int is_scrooge = info.scrooge_map[index];
     return !(is_cashbag || is_obstacle || is_scrooge);
+}
+
+int flee_heuristic(int sx, int sy, int ex, int ey, StateInfo info) { return 0; }
+
+int flee_is_done(int sx, int sy, int ex, int ey, StateInfo info)
+{
+    int index = sy * W + sx;
+    return !info.obstacle_map[index] && !info.scrooge_radius_map[index];
 }
 
 int* get_flee_neighbours(int x, int y, StateInfo info)
@@ -87,6 +120,7 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int,
     int cx;
     int cy;
     while (n > 0) {
+        // printf("n: %d\n", n);
         int current = extract_max(keys, values, &n);
         cx = current % W;
         cy = current / W;
@@ -124,6 +158,11 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int,
 
 int* flee_a_star(int x, int y, StateInfo info)
 {
+    return get_a_star_move(x, y, 0, 0, get_flee_neighbours, flee_heuristic, flee_is_done, info);
+}
+
+int* herding_a_star(int sx, int sy, int ex, int ey, StateInfo info)
+{
     return get_a_star_move(
-        x, y, 0, 0, get_flee_neighbours, null_heuristic, not_watched_is_done, info);
+        sx, sy, ex, ey, get_herding_neighbours, herding_heuristic, herding_is_done, info);
 }
