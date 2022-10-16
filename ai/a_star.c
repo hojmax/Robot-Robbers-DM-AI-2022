@@ -30,9 +30,8 @@ int* get_neighbours_base(
         output[i] = -1;
     }
     int index = 0;
-    int n_moves = 8;
     int all_moves[] = { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1 };
-    for (int a = 0; a < n_moves; a++) {
+    for (int a = 0; a < N_NEIGHBOURS; a++) {
         int dx = all_moves[2 * a];
         int dy = all_moves[2 * a + 1];
         int nx = x + dx;
@@ -61,7 +60,8 @@ int flee_neighbour_condition(int x, int y, StateInfo info)
     int index = y * W + x;
     int is_cashbag = info.cashbag_map[index];
     int is_obstacle = info.obstacle_map[index];
-    return !(is_cashbag || is_obstacle);
+    int is_scrooge = info.scrooge_map[index];
+    return !(is_cashbag || is_obstacle || is_scrooge);
 }
 
 int* get_flee_neighbours(int x, int y, StateInfo info)
@@ -120,4 +120,10 @@ int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int,
         return NULL;
     }
     return get_initial_move(sx, sy, cx, cy, came_from);
+}
+
+int* flee_a_star(int x, int y, StateInfo info)
+{
+    return get_a_star_move(
+        x, y, 0, 0, get_flee_neighbours, null_heuristic, not_watched_is_done, info);
 }

@@ -2,7 +2,7 @@
 #define CONSTANTS_H_INCLUDED
 
 #define SCROOGE_RADIUS 15
-#define HERDRING_ROBOT 0
+#define HERDING_ROBOT 0
 #define W 128
 #define H 128
 #define N_NEIGHBOURS 8

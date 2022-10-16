@@ -55,7 +55,18 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* actions = calloc(2 * n_robots, sizeof(int));
     StateInfo info = get_state_info(
         scrooges, cashbags, dropspots, obstacles, n_scrooges, n_cashbags, n_dropspots, n_obstacles);
-    print_grid(info.scrooge_map, W, H);
+    for (int i = 0; i < n_robots; i++) {
+        int rx = robots[2 * i];
+        int ry = robots[2 * i + 1];
+        int is_watched = info.scrooge_radius_map[ry * W + rx];
+        if (is_watched) {
+            int* move = flee_a_star(rx, ry, info);
+            if (move != NULL) {
+                actions[2 * i] = move[0];
+                actions[2 * i + 1] = move[1];
+            }
+        }
+    }
     free(info.obstacle_map);
     free(info.cashbag_map);
     free(info.scrooge_map);
