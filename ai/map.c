@@ -75,36 +75,38 @@ int* get_obstacle_map(int* obstacles, int n_obstacles)
     return obstacle_map;
 }
 
-int* get_scrooge_map(int* scrooges, int n_scrooges)
+int* get_entity_map(int* entities, int n_entities, int padding)
 {
-    int* scrooge_map = calloc(W * H, sizeof(int));
+    int* entity_map = calloc(W * H, sizeof(int));
 
-    for (int i = 0; i < n_scrooges; i++) {
-        int x = scrooges[2 * i];
-        int y = scrooges[2 * i + 1];
-        for (int j = -1; j <= 1; j++) {
-            for (int k = -1; k <= 1; k++) {
+    for (int i = 0; i < n_entities; i++) {
+        int x = entities[2 * i];
+        int y = entities[2 * i + 1];
+        for (int j = -padding; j <= padding; j++) {
+            for (int k = -padding; k <= padding; k++) {
                 int new_x = x + k;
                 int new_y = y + j;
                 if (new_x >= 0 && new_x < W && new_y >= 0 && new_y < H) {
-                    scrooge_map[new_y * W + new_x] = 1;
+                    entity_map[new_y * W + new_x] = 1;
                 }
             }
         }
     }
 
-    return scrooge_map;
+    return entity_map;
+}
+
+int* get_scrooge_map(int* scrooges, int n_scrooges)
+{
+    return get_entity_map(scrooges, n_scrooges, 1);
 }
 
 int* get_cashbag_map(int* cashbags, int n_cashbags)
 {
-    int* cashbag_map = calloc(W * H, sizeof(int));
+    return get_entity_map(cashbags, n_cashbags, 0);
+}
 
-    for (int i = 0; i < n_cashbags; i++) {
-        int x = cashbag_map[2 * i];
-        int y = cashbag_map[2 * i + 1];
-        cashbag_map[y * W + x] = 1;
-    }
-
-    return cashbag_map;
+int* get_dropspot_map(int* dropspots, int n_dropspots)
+{
+    return get_entity_map(dropspots, n_dropspots, 0);
 }

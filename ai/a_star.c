@@ -1,3 +1,5 @@
+#include "ai.h"
+#include "binary_heap.h"
 #include "constants.h"
 #include <assert.h>
 #include <stdio.h>
@@ -20,7 +22,8 @@ int* get_initial_move(int sx, int sy, int ex, int ey, int* came_from)
     return move;
 }
 
-int* get_neighbours_base(int x, int y, int (*neighbour_condition)(int, int, int**), int** info)
+int* get_neighbours_base(
+    int x, int y, int (*neighbour_condition)(int, int, StateInfo), StateInfo info)
 {
     int* output = calloc(2 * N_NEIGHBOURS, sizeof(int));
     for (int i = 0; i < 2 * N_NEIGHBOURS; i++) {
@@ -45,16 +48,30 @@ int* get_neighbours_base(int x, int y, int (*neighbour_condition)(int, int, int*
     return output;
 }
 
-int null_heuristic(int sx, int sy, int ex, int ey, int** info) { return 0; }
-int no_scrooge_radius_neighbour_condition(int sx, int sy, int ex, int ey, int** info)
+int null_heuristic(int sx, int sy, int ex, int ey, StateInfo info) { return 0; }
+
+int not_watched_is_done(int sx, int sy, int ex, int ey, StateInfo info)
 {
-    int* obstacle_map = info[0];
-    return obstacle_map[sy * W + sx];
+    int index = sy * W + sx;
+    return !info.obstacle_map[index] && !info.scrooge_radius_map[index];
 }
 
-int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int, int, int**),
-    int (*heuristic)(int, int, int, int, int**), int (*is_done)(int, int, int, int, int**),
-    int** info)
+int flee_neighbour_condition(int x, int y, StateInfo info)
+{
+    int index = y * W + x;
+    int is_cashbag = info.cashbag_map[index];
+    int is_obstacle = info.obstacle_map[index];
+    return !(is_cashbag || is_obstacle);
+}
+
+int* get_flee_neighbours(int x, int y, StateInfo info)
+{
+    return get_neighbours_base(x, y, flee_neighbour_condition, info);
+}
+
+int* get_a_star_move(int sx, int sy, int tx, int ty, int* (*get_neighbours)(int, int, StateInfo),
+    int (*heuristic)(int, int, int, int, StateInfo), int (*is_done)(int, int, int, int, StateInfo),
+    StateInfo info)
 {
     int* came_from = calloc(W * H, sizeof(int));
     int* cost_so_far = calloc(W * H, sizeof(int));

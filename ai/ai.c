@@ -1,4 +1,5 @@
-#include "binary_heap.h"
+#include "ai.h"
+#include "a_star.h"
 #include "constants.h"
 #include "map.h"
 #include <limits.h>
@@ -31,26 +32,35 @@ void print_grid(int* grid, int w, int h)
     printf("\n");
 }
 
+StateInfo get_state_info(int* scrooges, int* cashbags, int* dropspots, int* obstacles,
+    int n_scrooges, int n_cashbags, int n_dropspots, int n_obstacles)
+{
+    int* obstacle_map = get_obstacle_map(obstacles, n_obstacles);
+    int* cashbag_map = get_cashbag_map(cashbags, n_cashbags);
+    int* scrooge_map = get_scrooge_map(scrooges, n_scrooges);
+    int* scrooge_radius_map = get_scrooge_radius_map(scrooges, n_scrooges);
+    int* dropspot_map = get_dropspot_map(dropspots, n_dropspots);
+    return (StateInfo) { .obstacle_map = obstacle_map,
+        .cashbag_map = cashbag_map,
+        .scrooge_map = scrooge_map,
+        .scrooge_radius_map = scrooge_radius_map,
+        .dropspot_map = dropspot_map,
+        .value = 0 };
+}
+
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
     int* obstacles, int n_robots, int n_scrooges, int n_cashbags, int n_dropspots,
     int n_cash_carried, int n_obstacles, int game_ticks)
 {
     int* actions = calloc(2 * n_robots, sizeof(int));
-    int* obstacle_map = get_obstacle_map(obstacles, n_obstacles);
-    int* cashbag_map = get_cashbag_map(cashbags, n_cashbags);
-    int* scrooge_map = get_scrooge_map(scrooges, n_scrooges);
-    int* scrooge_radius_map = get_scrooge_radius_map(scrooges, n_scrooges);
-    print_grid(scrooge_radius_map, W, H);
-    print_grid(scrooge_map, W, H);
-    int** info = calloc(5, sizeof(int*));
-    info[0] = obstacle_map;
-    info[1] = scrooge_radius_map;
-    info[2] = cashbag_map;
-    info[3] = scrooge_map;
-    free(obstacle_map);
-    free(cashbag_map);
-    free(scrooge_map);
-    free(scrooge_radius_map);
+    StateInfo info = get_state_info(
+        scrooges, cashbags, dropspots, obstacles, n_scrooges, n_cashbags, n_dropspots, n_obstacles);
+    print_grid(info.scrooge_map, W, H);
+    free(info.obstacle_map);
+    free(info.cashbag_map);
+    free(info.scrooge_map);
+    free(info.scrooge_radius_map);
+    free(info.dropspot_map);
     return actions;
 }
 
