@@ -39,20 +39,18 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     int* obstacle_map = get_obstacle_map(obstacles, n_obstacles);
     int* cashbag_map = get_cashbag_map(cashbags, n_cashbags);
     int* scrooge_map = get_scrooge_map(scrooges, n_scrooges);
-    int* scrooge_radius_map_split;
-    int* scrooge_radius_map;
-    fill_scrooge_radius_maps(scrooges, n_scrooges, &scrooge_radius_map_split, &scrooge_radius_map);
-    int** info = calloc(6, sizeof(int*));
+    int* scrooge_radius_map = get_scrooge_radius_map(scrooges, n_scrooges);
+    print_grid(scrooge_radius_map, W, H);
+    print_grid(scrooge_map, W, H);
+    int** info = calloc(5, sizeof(int*));
     info[0] = obstacle_map;
     info[1] = scrooge_radius_map;
     info[2] = cashbag_map;
     info[3] = scrooge_map;
-    info[4] = scrooge_radius_map_split;
     free(obstacle_map);
     free(cashbag_map);
     free(scrooge_map);
     free(scrooge_radius_map);
-    free(scrooge_radius_map_split);
     return actions;
 }
 
