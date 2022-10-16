@@ -45,7 +45,7 @@ StateInfo get_state_info(int* scrooges, int* cashbags, int* dropspots, int* obst
         .scrooge_map = scrooge_map,
         .scrooge_radius_map = scrooge_radius_map,
         .dropspot_map = dropspot_map,
-        .value = 0 };
+        .misc_value = 0 };
 }
 
 int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* cash_carried,
@@ -58,12 +58,18 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     for (int i = 0; i < n_robots; i++) {
         int rx = robots[2 * i];
         int ry = robots[2 * i + 1];
-        int is_watched = info.scrooge_radius_map[ry * W + rx];
-        if (is_watched) {
-            int* move = flee_a_star(rx, ry, info);
-            if (move != NULL) {
-                actions[2 * i] = move[0];
-                actions[2 * i + 1] = move[1];
+        if (i == HERDING_ROBOT) {
+
+        } else if (i == GREED_ROBOT) {
+
+        } else {
+            int is_watched = info.scrooge_radius_map[ry * W + rx];
+            if (is_watched) {
+                int* move = flee_a_star(rx, ry, info);
+                if (move != NULL) {
+                    actions[2 * i] = move[0];
+                    actions[2 * i + 1] = move[1];
+                }
             }
         }
     }

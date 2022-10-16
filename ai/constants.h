@@ -3,6 +3,7 @@
 
 #define SCROOGE_RADIUS 15
 #define HERDING_ROBOT 0
+#define GREED_ROBOT 1
 #define W 128
 #define H 128
 #define N_NEIGHBOURS 8

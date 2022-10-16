@@ -7,7 +7,7 @@ typedef struct StateInfo {
     int* scrooge_map;
     int* scrooge_radius_map;
     int* dropspot_map;
-    int value;
+    int misc_value;
 } StateInfo;
 
 #endif
