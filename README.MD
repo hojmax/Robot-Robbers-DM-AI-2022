@@ -6,9 +6,7 @@ This project contains my team's winning solution for one of the three challenges
 
 ![](images/game_example.png)
 
-*Robot Robbers* is an interactive 2D game where you, the player, control 5 robots trying to steal money from angry scrooges. When a robot robber intersects with a cashbag, the robot picks it up. When a robot carrying cashbags intersects with a dropspot, the cashbags are deposited and a reward is provided. The scrooges are the game antagonists. They will try their very best to keep the cashbags from being stolen. If a robot carrying cashbags intersects with a scrooge, the cashbags are taken away and the player receives a penalty.
-
-The rules stated here are of course a bit simplified. For a more in depth explanation see [the original repository](https://github.com/amboltio/DM-i-AI-2022/tree/main/robot-robbers).
+*Robot Robbers* is an interactive 2D game where you, the player, control 5 robots trying to steal money from angry scrooges. When a robot robber intersects with a cashbag, the robot picks it up. When a robot carrying cashbags intersects with a dropspot, the cashbags are deposited and a reward is provided. The scrooges are the game antagonists. They will try their very best to keep the cashbags from being stolen. If a robot carrying cashbags intersects with a scrooge, the cashbags are taken away and the player receives a penalty. For a more in depth explanation see [the original repository](https://github.com/amboltio/DM-i-AI-2022/tree/main/robot-robbers).
 
 ## 🕹️ Gameplay
 ![](images/gameplay.gif)
