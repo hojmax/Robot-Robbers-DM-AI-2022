@@ -2,7 +2,7 @@
 
 ## 📝 Description
 
-This project contains my winning solution for one of the three challenges of the Danish Championship in AI 2022. The challenge was to maximize your score playing 2 wall-clock minutes of the game *Robot Robbers*.
+This project contains my team's winning solution for one of the three challenges of the Danish Championship in AI 2022. The challenge was to maximize your score playing 2 wall-clock minutes of the game *Robot Robbers*.
 
 ![](images/game_example.png)
 
