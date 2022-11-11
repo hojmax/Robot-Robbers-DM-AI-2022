@@ -31,9 +31,9 @@ int* get_neighbours_base(
     }
     int index = 0;
     int all_moves[] = { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1 };
-    for (int a = 0; a < N_NEIGHBOURS; a++) {
-        int dx = all_moves[2 * a];
-        int dy = all_moves[2 * a + 1];
+    for (int i = 0; i < N_NEIGHBOURS; i++) {
+        int dx = all_moves[2 * i];
+        int dy = all_moves[2 * i + 1];
         int nx = x + dx;
         int ny = y + dy;
         int is_bounded = nx >= 0 && nx < W && ny >= 0 && ny < H;

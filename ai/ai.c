@@ -118,18 +118,4 @@ int* get_action(int* robots, int* scrooges, int* cashbags, int* dropspots, int* 
     free(info.dropspot_map);
     return actions;
 }
-
-// -- MAX HEAP TEST
-// int n = 0;
-// int* keys = calloc(MAX_HEAP_SIZE, sizeof(int));
-// int* values = calloc(MAX_HEAP_SIZE, sizeof(int));
-// insert(keys, values, 10, 45, &n);
-// insert(keys, values, 92, 15, &n);
-// insert(keys, values, 53, 75, &n);
-// insert(keys, values, 12, 40, &n);
-// printf("%d\n", extract_max(keys, values, &n));
-// printf("%d\n", extract_max(keys, values, &n));
-// printf("%d\n", extract_max(keys, values, &n));
-// printf("%d\n\n", extract_max(keys, values, &n));
-
-// cd ai && make ai && cd .. && python main.py
+// (cd ai && make) && python main.py

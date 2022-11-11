@@ -14,4 +14,4 @@ This project contains my winning solution for one of the three challenges of the
 
 ## 🏄‍♂️ Usage
 
-The command `make ai && python3 main.py` will compile the C-code and run a visualization of the solution on a random seed.
+The command `(cd ai && make)` will compile the C-code and `python main.py` will run a visualization of the solution on a random seed.

@@ -59,11 +59,17 @@ int* get_obstacle_map(int* obstacles, int n_obstacles, int padding)
         // Bug in their code, means j <= h and not j < h. Same for k.
         for (int j = -padding; j <= h + padding; j++) {
             int new_y = y + j;
+            if (new_y < 0) {
+                continue;
+            }
             if (new_y >= H) {
                 break;
             }
             for (int k = -padding; k <= w + padding; k++) {
                 int new_x = x + k;
+                if (new_x < 0) {
+                    continue;
+                }
                 if (new_x >= W) {
                     break;
                 }

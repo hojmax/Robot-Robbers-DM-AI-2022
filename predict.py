@@ -33,21 +33,19 @@ def get_action(state, game_tick, end_tick):
 
 def extract_information(state):
     robots = np.array(
-        [[x, y]
-         for (x, y, w, h) in state[0] if x >= 0 and y >= 0]
+        [[x, y] for (x, y, w, h) in state[0] if x >= 0 and y >= 0]
     ).flatten()
     scrooges = np.array(
         [[x, y] for (x, y, w, h) in state[1] if x >= 0 and y >= 0]
     ).flatten()
     cashbags = np.array(
-        [[x, y] for (x, y, w, h) in state[2]
-         if x >= 0 and y >= 0]
+        [[x, y] for (x, y, w, h) in state[2] if x >= 0 and y >= 0]
     ).flatten()
     dropspots = np.array(
         [[x, y] for (x, y, w, h) in state[3] if x >= 0 and y >= 0]
     ).flatten()
     obstacles = np.array(
-        [[x, y, w, h] for x, y, w, h in state[4] if x >= 0 and y >= 0]
+        [[x, y, w, h] for (x, y, w, h) in state[4] if x >= 0 and y >= 0]
     ).flatten()
     cash_carried = [row[0] for row in state[5] if row[0] >= 0]
 
